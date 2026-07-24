@@ -230,6 +230,19 @@ function doGet(evento) {
       return responderJson(buscarHistoricoRecente(limite));
     }
 
+    if (parametros.acao === "buscarTfms") {
+      const tfms = extrairTfmsParametro(parametros.tfms);
+
+      if (tfms.length === 0) {
+        return responderJson({ sucesso: false, erro: "Informe ao menos um TFM valido." });
+      }
+
+      return responderJson({
+        sucesso: true,
+        resultados: buscarDocumentosPorTfms(tfms)
+      });
+    }
+
     if (parametros.acao !== "buscarTfm") {
       return responderJson({ sucesso: false, erro: "Acao invalida." });
     }
@@ -407,7 +420,16 @@ function criarNomeArquivoDocumento(tfm, nomeOriginal) {
   return `${prefixo}${nomeSeguro}`;
 }
 
+function extrairTfmsParametro(valor) {
+  const tfms = String(valor || "").match(/\d{6}/g) || [];
+  return [...new Set(tfms)];
+}
+
 function buscarDocumentoPorTfm(tfm) {
+  return buscarDocumentosPorTfms([tfm])[0];
+}
+
+function buscarDocumentosPorTfms(tfms) {
   const aba = obterAbaPrincipal();
   const dados = aba.getDataRange().getValues();
   const cabecalhos = dados[0] || [];
@@ -429,19 +451,31 @@ function buscarDocumentoPorTfm(tfm) {
     throw new Error("Cabecalhos da planilha nao encontrados.");
   }
 
-  const registros = [];
-  let resumo = null;
+  const tfmsNormalizados = [...new Set(tfms.map((item) => String(item || "").trim()).filter(Boolean))];
+  const tfmsBuscados = new Set(tfmsNormalizados);
+  const resultados = tfmsNormalizados.reduce((acumulador, item) => {
+    acumulador[item] = {
+      sucesso: true,
+      encontrado: false,
+      tfm: item,
+      registros: []
+    };
+    return acumulador;
+  }, {});
 
   for (let indice = dados.length - 1; indice >= 1; indice -= 1) {
     const linha = dados[indice];
     const tfmLinha = String(linha[colunaTfm] || "").trim();
 
-    if (tfmLinha !== tfm) {
+    if (!tfmsBuscados.has(tfmLinha)) {
       continue;
     }
 
-    if (!resumo) {
-      resumo = {
+    const resultado = resultados[tfmLinha];
+
+    if (!resultado.encontrado) {
+      Object.assign(resultado, {
+        encontrado: true,
         data: colunaData >= 0 ? linha[colunaData] : "",
         turno: colunaTurno >= 0 ? linha[colunaTurno] : "",
         nome: colunaNome >= 0 ? linha[colunaNome] : "",
@@ -453,30 +487,17 @@ function buscarDocumentoPorTfm(tfm) {
         ),
         nomeDocumento: colunaNomePdf >= 0 ? linha[colunaNomePdf] : "",
         urlDocumento: colunaLinkPdf >= 0 ? linha[colunaLinkPdf] : ""
-      };
+      });
     }
 
-    registros.unshift({
+    resultado.registros.unshift({
       atividade: colunaAtividade >= 0 ? linha[colunaAtividade] : "",
       horas: colunaHoras >= 0 ? linha[colunaHoras] : "",
       observacao: colunaObservacao >= 0 ? linha[colunaObservacao] : ""
     });
   }
 
-  if (resumo) {
-    return Object.assign({
-      sucesso: true,
-      encontrado: true,
-      tfm,
-      registros
-    }, resumo);
-  }
-
-  return {
-    sucesso: true,
-    encontrado: false,
-    tfm
-  };
+  return tfmsNormalizados.map((item) => resultados[item]);
 }
 
 function buscarResumoGeral() {

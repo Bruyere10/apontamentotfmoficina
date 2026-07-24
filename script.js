@@ -149,6 +149,7 @@ let usuarioAtual = null;
 let atividadeEmEdicao = null;
 let colaboradorEmEdicao = null;
 let salvamentoIntervalo = null;
+const cacheConsultaTfms = new Map();
 const colaboradores = [
     { matricula: "87033", nome: "Leonel Barros Pereira Da Silva" },
     { matricula: "61449", nome: "Ailton Dos Reis Santana" },
@@ -196,6 +197,7 @@ function fecharSugestoes() {
         lista.innerHTML = "";
     });
 }
+    cacheConsultaTfms.delete(dados.tfm);
 
 function correspondeBusca(texto, busca) {
     const textoNormalizado = normalizarTexto(texto);
@@ -1334,19 +1336,40 @@ async function consultarTfm(tfm) {
 }
 
 async function consultarListaTfms(tfms) {
-    const resultados = [];
+    const resultadosEmCache = tfms
+        .filter((tfm) => cacheConsultaTfms.has(tfm))
+        .map((tfm) => cacheConsultaTfms.get(tfm));
+    const tfmsPendentes = tfms.filter((tfm) => !cacheConsultaTfms.has(tfm));
 
-    for (const tfm of tfms) {
-        try {
-            const dados = await consultarTfm(tfm);
-            resultados.push({ tfm, dados, encontrado: Boolean(dados.encontrado) });
-        } catch (erro) {
-            console.error(erro);
-            resultados.push({ tfm, erro: true, encontrado: false });
-        }
+    if (!tfmsPendentes.length) {
+        return resultadosEmCache;
     }
 
-    return resultados;
+    const resposta = await fetch(`${SCRIPT_URL}?acao=buscarTfms&tfms=${encodeURIComponent(tfmsPendentes.join(","))}`);
+
+    if (!resposta.ok) {
+        throw new Error("Erro ao consultar o Apps Script.");
+    }
+
+    const dados = await resposta.json();
+
+    if (!dados.sucesso) {
+        throw new Error(dados.erro || "Erro ao consultar os TFMs.");
+    }
+
+    tfmsPendentes.forEach((tfm) => {
+        const resultado = Array.isArray(dados.resultados)
+            ? dados.resultados.find((item) => item.tfm === tfm)
+            : null;
+
+        cacheConsultaTfms.set(tfm, {
+            tfm,
+            dados: resultado || { sucesso: true, encontrado: false, tfm },
+            encontrado: Boolean(resultado?.encontrado)
+        });
+    });
+
+    return tfms.map((tfm) => cacheConsultaTfms.get(tfm));
 }
 
 function criarResumoConsultaTfms(resultados) {
