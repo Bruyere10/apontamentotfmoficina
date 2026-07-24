@@ -8,8 +8,9 @@
     <title>Registro de Atividades TFM | Stellantis</title>
     <meta name="description" content="Registro de atividades realizadas após a finalização do TFM.">
     <meta name="theme-color" content="#001E62">
-    <link rel="icon" type="image/png" href="slogan.png">
-    <link rel="apple-touch-icon" href="slogan.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+    <link rel="icon" type="image/png" sizes="48x48" href="favicon-48.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
     <link rel="manifest" href="site.webmanifest">
 
     <link rel="stylesheet" href="style.css">
@@ -34,6 +35,11 @@
                     <i class="bi bi-lightbulb"></i>
                     <span>Sugerir atividade</span>
                 </button>
+
+                <button type="button" class="btn-abrir-feedback">
+                    <i class="bi bi-chat-square-heart"></i>
+                    <span>Feedback</span>
+                </button>
             </div>
         </div>
     </header>
@@ -44,71 +50,110 @@
                 <img src="logo.png" alt="Stellantis">
             </div>
 
-            <div class="login-topo">
-                <span>Acesso ao apontamento</span>
-                <h1 id="login-titulo">Entre no Registro de TFM</h1>
-                <p>Informe seu nome e matrícula para acessar o apontamento.</p>
+            <div class="login-abas">
+                <button type="button" class="login-aba login-aba-ativo" id="aba-acesso" aria-selected="true">
+                    <i class="bi bi-box-arrow-in-right"></i>
+                    <span>Acesso</span>
+                </button>
+                <button type="button" class="login-aba" id="aba-consultar" aria-selected="false">
+                    <i class="bi bi-search"></i>
+                    <span>Consultar TFM</span>
+                </button>
             </div>
 
-            <div id="login-feedback" class="login-feedback" role="status" aria-live="polite" hidden></div>
-
-            <div class="login-form">
-                <div class="campo">
-                    <label for="login-nome">Nome do Colaborador</label>
-                    <div class="autocomplete-wrapper">
-                        <div class="input-icon">
-                            <i class="bi bi-person"></i>
-                            <input id="login-nome" type="text" class="login-colaborador-input" placeholder="Digite seu nome" autocomplete="off">
-                        </div>
-                        <div class="atividade-sugestoes" hidden></div>
-                    </div>
+            <div id="painel-acesso">
+                <div class="login-topo">
+                    <span>Acesso ao apontamento</span>
+                    <h1 id="login-titulo">Entre no Registro de TFM</h1>
+                    <p>Informe seu nome e matrícula para acessar o apontamento.</p>
                 </div>
 
-                <div class="campo">
-                    <label for="login-matricula">Matrícula</label>
-                    <div class="input-icon">
-                        <i class="bi bi-hash"></i>
-                        <input id="login-matricula" type="text" placeholder="Digite sua matrícula" inputmode="numeric" autocomplete="off">
-                    </div>
-                </div>
+                <div id="login-feedback" class="login-feedback" role="status" aria-live="polite" hidden></div>
 
-                <button type="button" class="btn-entrar-login">
-                    <i class="bi bi-box-arrow-in-right"></i>
-                    <span>Entrar</span>
-                </button>
-
-                <button type="button" class="btn-login-alternativo">
-                    <i class="bi bi-person-plus"></i>
-                    <span>Não encontrei meu nome</span>
-                </button>
-
-                <div id="login-alternativo" class="login-alternativo" hidden>
-                    <div class="login-alternativo-topo">
-                        <strong>Entrar com cadastro pendente</strong>
-                        <p>Use esta opção se seu nome ainda não aparece na lista. Depois peça para a liderança incluir seu cadastro oficial.</p>
-                    </div>
-
+                <div class="login-form">
                     <div class="campo">
-                        <label for="novo-login-nome">Nome completo</label>
-                        <div class="input-icon">
-                            <i class="bi bi-person-badge"></i>
-                            <input id="novo-login-nome" type="text" placeholder="Digite seu nome completo" autocomplete="off">
+                        <label for="login-nome">Nome do Colaborador</label>
+                        <div class="autocomplete-wrapper">
+                            <div class="input-icon">
+                                <i class="bi bi-person"></i>
+                                <input id="login-nome" type="text" class="login-colaborador-input" placeholder="Digite seu nome" autocomplete="off">
+                            </div>
+                            <div class="atividade-sugestoes" hidden></div>
                         </div>
                     </div>
 
                     <div class="campo">
-                        <label for="novo-login-matricula">Matrícula</label>
+                        <label for="login-matricula">Matrícula</label>
                         <div class="input-icon">
                             <i class="bi bi-hash"></i>
-                            <input id="novo-login-matricula" type="text" placeholder="Digite sua matrícula" inputmode="numeric" autocomplete="off">
+                            <input id="login-matricula" type="text" placeholder="Digite sua matrícula" inputmode="numeric" autocomplete="off">
                         </div>
                     </div>
 
-                    <button type="button" class="btn-entrar-pendente">
-                        <i class="bi bi-person-check"></i>
-                        <span>Entrar e solicitar inclusão</span>
+                    <button type="button" class="btn-entrar-login">
+                        <i class="bi bi-box-arrow-in-right"></i>
+                        <span>Entrar</span>
+                    </button>
+
+                    <button type="button" class="btn-login-alternativo">
+                        <i class="bi bi-person-plus"></i>
+                        <span>Não encontrei meu nome</span>
+                    </button>
+
+                    <div id="login-alternativo" class="login-alternativo" hidden>
+                        <div class="login-alternativo-topo">
+                            <strong>Entrar com cadastro pendente</strong>
+                            <p>Use esta opção se seu nome ainda não aparece na lista. Depois peça para a liderança incluir seu cadastro oficial.</p>
+                        </div>
+
+                        <div class="campo">
+                            <label for="novo-login-nome">Nome completo</label>
+                            <div class="input-icon">
+                                <i class="bi bi-person-badge"></i>
+                                <input id="novo-login-nome" type="text" placeholder="Digite seu nome completo" autocomplete="off">
+                            </div>
+                        </div>
+
+                        <div class="campo">
+                            <label for="novo-login-matricula">Matrícula</label>
+                            <div class="input-icon">
+                                <i class="bi bi-hash"></i>
+                                <input id="novo-login-matricula" type="text" placeholder="Digite sua matrícula" inputmode="numeric" autocomplete="off">
+                            </div>
+                        </div>
+
+                        <button type="button" class="btn-entrar-pendente">
+                            <i class="bi bi-person-check"></i>
+                            <span>Entrar e solicitar inclusão</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="painel-consultar-login" hidden>
+                <div class="login-topo">
+                    <span>Consultar TFM</span>
+                    <h1>Pesquisar TFM</h1>
+                    <p>Cole um ou vários TFMs para verificar quais estão no apontamento.</p>
+                </div>
+
+                <div id="login-consulta-feedback" class="login-feedback" role="status" aria-live="polite" hidden></div>
+
+                <div class="login-form">
+                    <div class="campo">
+                        <label for="login-busca-tfm">Número(s) do TFM</label>
+                        <div class="input-icon input-textarea">
+                            <i class="bi bi-hash"></i>
+                            <textarea id="login-busca-tfm" rows="4" placeholder="Cole os TFMs aqui, um por linha ou separados por espaço" inputmode="numeric" autocomplete="off"></textarea>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-buscar-login btn-entrar-login">
+                        <i class="bi bi-search"></i>
+                        <span>Buscar TFM</span>
                     </button>
                 </div>
+
+                <div id="login-resultado-busca" class="resultado-busca login-resultado-busca" hidden></div>
             </div>
         </div>
 
@@ -152,6 +197,59 @@
                     <button type="button" class="btn-sugerir-atividade">
                         <i class="bi bi-send"></i>
                         <span>Enviar sugestão</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div id="modal-feedback" class="modal-tfm" hidden>
+        <div class="modal-tfm-backdrop" data-fechar-feedback></div>
+        <section class="modal-tfm-painel modal-sugestao-painel" role="dialog" aria-modal="true" aria-labelledby="modal-feedback-titulo">
+            <div class="modal-tfm-topo">
+                <div>
+                    <span>Feedback do colaborador</span>
+                    <h2 id="modal-feedback-titulo">Enviar sugestão, ideia ou reclamação</h2>
+                </div>
+
+                <button type="button" class="btn-fechar-modal" aria-label="Fechar feedback" data-fechar-feedback>
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+
+            <div class="modal-tfm-conteudo">
+                <div class="sugestao-atividade-conteudo">
+                    <div class="campo">
+                        <label for="feedback-tipo">Tipo de feedback</label>
+                        <div class="input-icon">
+                            <i class="bi bi-tags"></i>
+                            <select id="feedback-tipo">
+                                <option value="Sugestão">Sugestão</option>
+                                <option value="Ideia">Ideia</option>
+                                <option value="Reclamação">Reclamação</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="campo">
+                        <label for="feedback-texto">Sugestão, ideia ou reclamação</label>
+                        <div class="input-icon input-textarea">
+                            <i class="bi bi-chat-left-text"></i>
+                            <textarea id="feedback-texto" rows="3" placeholder="Descreva o feedback"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="campo">
+                        <label for="feedback-observacao">Observação complementar</label>
+                        <div class="input-icon input-textarea">
+                            <i class="bi bi-card-text"></i>
+                            <textarea id="feedback-observacao" rows="2" placeholder="Opcional: detalhe melhor o contexto"></textarea>
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn-enviar-feedback">
+                        <i class="bi bi-send"></i>
+                        <span>Enviar feedback</span>
                     </button>
                 </div>
             </div>
@@ -425,24 +523,6 @@
 
             <div id="feedback-global" class="feedback-global" role="status" aria-live="polite" hidden></div>
 
-            <div id="modal-tfm" class="modal-tfm" hidden>
-                <div class="modal-tfm-backdrop" data-fechar-modal></div>
-                <section class="modal-tfm-painel" role="dialog" aria-modal="true" aria-labelledby="modal-tfm-titulo">
-                    <div class="modal-tfm-topo">
-                        <div>
-                            <span>Consultar TFM</span>
-                            <h2 id="modal-tfm-titulo">Resultado da consulta</h2>
-                        </div>
-
-                        <button type="button" class="btn-fechar-modal" aria-label="Fechar consulta" data-fechar-modal>
-                            <i class="bi bi-x-lg"></i>
-                        </button>
-                    </div>
-
-                    <div id="modal-tfm-conteudo" class="modal-tfm-conteudo"></div>
-                </section>
-            </div>
-
             <div class="form-layout">
                 <div class="form-coluna form-coluna-esquerda">
                     <div class="card card-dados">
@@ -483,7 +563,6 @@
                                    <option>Ailton Dos Reis Santana</option>
 <option>Airton Fonseca do Nascimento</option>
 <option>Albert de Almeida Libério</option>
-<option>Aldecir de Oliveira Chaves</option>
 <option>Caio Resende Soares</option>
 <option>Cláudio Roberto Miranda</option>
 <option>Cleiton De Souza</option>
@@ -667,10 +746,10 @@
 
                     <div class="busca-tfm">
                         <div class="campo">
-                            <label for="busca-tfm">Número do TFM</label>
-                            <div class="input-icon">
+                            <label for="busca-tfm">Número(s) do TFM</label>
+                            <div class="input-icon input-textarea">
                                 <i class="bi bi-hash"></i>
-                                <input id="busca-tfm" type="text" placeholder="Digite o TFM" maxlength="6" minlength="6" pattern="[0-9]{6}" inputmode="numeric" autocomplete="off">
+                                <textarea id="busca-tfm" rows="4" placeholder="Cole os TFMs aqui, um por linha ou separados por espaço" inputmode="numeric" autocomplete="off"></textarea>
                             </div>
                         </div>
 
@@ -692,7 +771,7 @@
                     <div class="linha"></div>
 
                     <div class="historico-topo">
-                        <p>Últimas 3 atividades salvas na planilha.</p>
+                        <p>Últimas 5 atividades salvas na planilha.</p>
                     </div>
 
                     <div id="historico-lista" class="historico-lista"></div>
@@ -709,6 +788,24 @@
 
         </form>
     </main>
+
+    <div id="modal-tfm" class="modal-tfm" hidden>
+        <div class="modal-tfm-backdrop" data-fechar-modal></div>
+        <section class="modal-tfm-painel" role="dialog" aria-modal="true" aria-labelledby="modal-tfm-titulo">
+            <div class="modal-tfm-topo">
+                <div>
+                    <span>Consultar TFM</span>
+                    <h2 id="modal-tfm-titulo">Resultado da consulta</h2>
+                </div>
+
+                <button type="button" class="btn-fechar-modal" aria-label="Fechar consulta" data-fechar-modal>
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+
+            <div id="modal-tfm-conteudo" class="modal-tfm-conteudo"></div>
+        </section>
+    </div>
 
     <script src="script.js?v=20260702-1"></script>
 </body>

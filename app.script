@@ -26,7 +26,10 @@ const CABECALHOS_DADOS_COMPLEMENTARES = [
   "SUGESTÃO DE ATIVIDADE",
   "OBSERVAÇÃO ATIVIDADE",
   "CADASTRO NOME",
-  "CADASTRO MATRÍCULA"
+  "CADASTRO MATRÍCULA",
+  "TIPO DO FEEDBACK",
+  "NOME DO COLABORADOR",
+  "MATRÍCULA DO COLABORADOR"
 ];
 
 function doPost(evento) {
@@ -35,6 +38,10 @@ function doPost(evento) {
 
     if (dados.acao === "sugerirAtividade") {
       return salvarSugestaoAtividade(dados);
+    }
+
+    if (dados.acao === "enviarFeedback") {
+      return salvarFeedbackColaborador(dados);
     }
 
     if (dados.acao === "registrarCadastroPendente") {
@@ -109,7 +116,10 @@ function salvarSugestaoAtividade(dados) {
       dados.atividade || "",
       dados.observacao || "",
       "",
-      ""
+      "",
+      "Sugestão de atividade",
+      dados.nomeColaborador || dados.nome || "",
+      dados.matriculaColaborador || dados.matricula || ""
     ]]);
 
     return responderJson({
@@ -119,6 +129,31 @@ function salvarSugestaoAtividade(dados) {
     return responderJson({
       sucesso: false,
       erro: erro.message || "Erro ao salvar sugestao de atividade."
+    });
+  }
+}
+
+function salvarFeedbackColaborador(dados) {
+  try {
+    const aba = obterAbaDadosComplementares();
+
+    aba.getRange(aba.getLastRow() + 1, 1, 1, CABECALHOS_DADOS_COMPLEMENTARES.length).setValues([[
+      dados.feedback || "",
+      dados.observacao || "",
+      "",
+      "",
+      dados.tipoFeedback || "Sugestão",
+      dados.nomeColaborador || dados.nome || "",
+      dados.matriculaColaborador || dados.matricula || ""
+    ]]);
+
+    return responderJson({
+      sucesso: true
+    });
+  } catch (erro) {
+    return responderJson({
+      sucesso: false,
+      erro: erro.message || "Erro ao salvar feedback."
     });
   }
 }
@@ -147,7 +182,10 @@ function salvarCadastroPendente(dados) {
       "",
       "",
       nome,
-      matricula
+      matricula,
+      "",
+      "",
+      ""
     ]]);
 
     return responderJson({
@@ -307,6 +345,8 @@ function obterAbaDadosComplementares() {
 
   if (aba.getLastRow() === 0) {
     aba.getRange(1, 1, 1, CABECALHOS_DADOS_COMPLEMENTARES.length).setValues([CABECALHOS_DADOS_COMPLEMENTARES]);
+  } else {
+    garantirCabecalhos(aba, CABECALHOS_DADOS_COMPLEMENTARES);
   }
 
   return aba;
