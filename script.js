@@ -82,6 +82,7 @@ const feedbackTipoInput = document.getElementById("feedback-tipo");
 const feedbackTextoInput = document.getElementById("feedback-texto");
 const feedbackObservacaoInput = document.getElementById("feedback-observacao");
 const resultadoBusca = document.getElementById("resultado-busca");
+const resultadoBuscaBackdrop = document.querySelector(".resultado-busca-backdrop");
 const modalTfm = document.getElementById("modal-tfm");
 const modalTfmConteudo = document.getElementById("modal-tfm-conteudo");
 const modalSugestao = document.getElementById("modal-sugestao");
@@ -150,6 +151,7 @@ let atividadeEmEdicao = null;
 let colaboradorEmEdicao = null;
 let salvamentoIntervalo = null;
 const cacheConsultaTfms = new Map();
+let buscaEmLoteDisponivel = true;
 const colaboradores = [
     { matricula: "87033", nome: "Leonel Barros Pereira Da Silva" },
     { matricula: "61449", nome: "Ailton Dos Reis Santana" },
@@ -197,7 +199,6 @@ function fecharSugestoes() {
         lista.innerHTML = "";
     });
 }
-    cacheConsultaTfms.delete(dados.tfm);
 
 function correspondeBusca(texto, busca) {
     const textoNormalizado = normalizarTexto(texto);
@@ -1004,8 +1005,10 @@ function alterarEstadoFeedback(estaEnviando) {
 
 function mostrarResultadoBusca(conteudo, tipo = "sucesso") {
     resultadoBusca.hidden = false;
+    resultadoBuscaBackdrop.hidden = false;
     resultadoBusca.className = `resultado-busca resultado-busca-${tipo}`;
     resultadoBusca.closest(".card-busca").classList.add("tem-resultado-busca");
+    document.body.classList.add("resultado-busca-aberto");
     resultadoBusca.innerHTML = "";
     resultadoBusca.appendChild(criarBotaoFecharResultado(limparResultadoBusca));
     resultadoBusca.appendChild(conteudo);
@@ -1013,7 +1016,9 @@ function mostrarResultadoBusca(conteudo, tipo = "sucesso") {
 
 function limparResultadoBusca() {
     resultadoBusca.hidden = true;
+    resultadoBuscaBackdrop.hidden = true;
     resultadoBusca.closest(".card-busca").classList.remove("tem-resultado-busca");
+    document.body.classList.remove("resultado-busca-aberto");
     resultadoBusca.innerHTML = "";
 }
 
@@ -1335,6 +1340,21 @@ async function consultarTfm(tfm) {
     return resposta.json();
 }
 
+async function consultarTfmsIndividualmente(tfms) {
+    const resultados = await Promise.all(tfms.map(async (tfm) => ({
+        tfm,
+        dados: await consultarTfm(tfm)
+    })));
+
+    resultados.forEach(({ tfm, dados }) => {
+        cacheConsultaTfms.set(tfm, {
+            tfm,
+            dados,
+            encontrado: Boolean(dados?.encontrado)
+        });
+    });
+}
+
 async function consultarListaTfms(tfms) {
     const resultadosEmCache = tfms
         .filter((tfm) => cacheConsultaTfms.has(tfm))
@@ -1343,6 +1363,11 @@ async function consultarListaTfms(tfms) {
 
     if (!tfmsPendentes.length) {
         return resultadosEmCache;
+    }
+
+    if (!buscaEmLoteDisponivel) {
+        await consultarTfmsIndividualmente(tfmsPendentes);
+        return tfms.map((tfm) => cacheConsultaTfms.get(tfm));
     }
 
     const resposta = await fetch(`${SCRIPT_URL}?acao=buscarTfms&tfms=${encodeURIComponent(tfmsPendentes.join(","))}`);
@@ -1354,7 +1379,15 @@ async function consultarListaTfms(tfms) {
     const dados = await resposta.json();
 
     if (!dados.sucesso) {
-        throw new Error(dados.erro || "Erro ao consultar os TFMs.");
+        const acaoEmLoteIndisponivel = normalizarTexto(dados.erro || "").includes("acao invalida");
+
+        if (!acaoEmLoteIndisponivel) {
+            throw new Error(dados.erro || "Erro ao consultar os TFMs.");
+        }
+
+        buscaEmLoteDisponivel = false;
+        await consultarTfmsIndividualmente(tfmsPendentes);
+        return tfms.map((tfm) => cacheConsultaTfms.get(tfm));
     }
 
     tfmsPendentes.forEach((tfm) => {
@@ -1826,6 +1859,7 @@ async function salvarApontamentoConfirmado() {
             throw new Error(resultado.erro || "Erro ao salvar apontamento.");
         }
 
+        cacheConsultaTfms.delete(dados.tfm);
         atualizarEtapaSalvamento("Atualizando resumo...");
         salvarHistorico(dados.atividades.map((atividade) => ({
             data: `${formatarData(dados.dataInicioTfm)} a ${formatarData(dados.dataFimTfm)}`,
@@ -1914,6 +1948,7 @@ detalhesContainer.addEventListener("click", (event) => {
 });
 
 btnBuscar.addEventListener("click", buscarDocumentoTfm);
+resultadoBuscaBackdrop.addEventListener("click", limparResultadoBusca);
 btnAbrirSugestao.addEventListener("click", abrirModalSugestao);
 btnAbrirFeedback.addEventListener("click", abrirModalFeedback);
 btnSugerirAtividade.addEventListener("click", enviarSugestaoAtividade);
@@ -2056,6 +2091,10 @@ document.addEventListener("input", (event) => {
 });
 
 document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !resultadoBusca.hidden) {
+        limparResultadoBusca();
+    }
+
     if (event.key === "Escape" && !modalTfm.hidden) {
         fecharModalTfm();
     }
