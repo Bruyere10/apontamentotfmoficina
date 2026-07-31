@@ -62,7 +62,8 @@ const atividadesDisponiveis = [
     "Troca de componentes no veiculo",
     "Instrumentação de coletor de admissão",
     "Troca de catalisador no motor na cela",
-    "Preparação de motor para rodagem em cela"
+    "Preparação de motor para rodagem em cela",
+    "Montagem de motor CCP controle parcial"
 ];
 
 const btnAdd = document.querySelector(".btn-add");
@@ -91,7 +92,10 @@ const modalAtividade = document.getElementById("modal-atividade");
 const modalColaborador = document.getElementById("modal-colaborador");
 const modalRevisao = document.getElementById("modal-revisao");
 const modalHelp = document.getElementById("modal-help");
+const modalDocumentos = document.getElementById("modal-documentos");
+const modalDocumentosConteudo = document.getElementById("modal-documentos-conteudo");
 const botoesHelp = document.querySelectorAll(".btn-help");
+const botoesHelpFeedback = document.querySelectorAll(".btn-help-feedback");
 const btnConfirmarAtividade = document.querySelector(".btn-confirmar-atividade");
 const btnConfirmarColaborador = document.querySelector(".btn-confirmar-colaborador");
 const btnConfirmarSalvamento = document.querySelector(".btn-confirmar-salvamento");
@@ -143,12 +147,14 @@ const ETAPAS_SALVAMENTO = [
     "Aguarde, quase lá..."
 ];
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbycpTr1Vj5nCByX2gYKvaXnhw7EiBUYqlnRq7ClSoqr2ZNBNvAUqvW2br6ksyAJDcxO/exec";
+const LIMITE_PREVIEW_DOCUMENTOS = 4;
 let resumoPlanilhaCarregado = false;
 let historicoAtual = [];
 let apontamentoPendente = null;
 let usuarioAtual = null;
 let atividadeEmEdicao = null;
 let colaboradorEmEdicao = null;
+let documentosEmVerificacao = null;
 let salvamentoIntervalo = null;
 const cacheConsultaTfms = new Map();
 let buscaEmLoteDisponivel = true;
@@ -712,14 +718,139 @@ function configurarAutocomplete(input, opcoes, aoSelecionar, aoDigitar) {
     input.addEventListener("focus", () => mostrarSugestoes(input, opcoes, aoSelecionar));
 }
 
+function obterChaveArquivo(arquivo) {
+    return `${arquivo.name}-${arquivo.size}-${arquivo.lastModified}`;
+}
+
+function sincronizarArquivosDocumento(input, arquivos) {
+    const transferencia = new DataTransfer();
+    arquivos.forEach((arquivo) => transferencia.items.add(arquivo));
+    input.files = transferencia.files;
+}
+
+function criarDocumentoPreviewItem(input, arquivos, arquivo, index) {
+    const item = document.createElement("div");
+    item.className = "documento-preview-item";
+
+    if (arquivo.type.startsWith("image/")) {
+        const imagem = document.createElement("img");
+        imagem.src = URL.createObjectURL(arquivo);
+        imagem.alt = arquivo.name;
+        imagem.addEventListener("load", () => URL.revokeObjectURL(imagem.src), { once: true });
+        item.appendChild(imagem);
+    } else {
+        const icone = document.createElement("i");
+        icone.className = "bi bi-file-earmark-pdf";
+        item.appendChild(icone);
+    }
+
+    const nome = document.createElement("span");
+    nome.textContent = arquivo.name;
+    nome.title = arquivo.name;
+
+    const remover = document.createElement("button");
+    remover.type = "button";
+    remover.className = "documento-preview-remover";
+    remover.setAttribute("aria-label", `Remover ${arquivo.name}`);
+    remover.innerHTML = `<i class="bi bi-x-lg"></i>`;
+    remover.addEventListener("click", () => {
+        arquivos.splice(index, 1);
+        sincronizarArquivosDocumento(input, arquivos);
+        atualizarPreviewDocumento(input, arquivos);
+
+        if (!modalDocumentos.hidden) {
+            atualizarModalDocumentos();
+        }
+    });
+
+    item.append(nome, remover);
+    return item;
+}
+
+function atualizarPreviewDocumento(input, arquivos) {
+    const campoDocumento = input.closest(".documento");
+    const nomeArquivo = campoDocumento.querySelector(".arquivo-nome");
+    const preview = campoDocumento.querySelector(".documento-preview");
+
+    nomeArquivo.textContent = arquivos.length
+        ? `${arquivos.length} arquivo${arquivos.length > 1 ? "s" : ""} selecionado${arquivos.length > 1 ? "s" : ""}`
+        : "Nenhum arquivo selecionado";
+
+    preview.innerHTML = "";
+
+    arquivos.slice(0, LIMITE_PREVIEW_DOCUMENTOS).forEach((arquivo, index) => {
+        preview.appendChild(criarDocumentoPreviewItem(input, arquivos, arquivo, index));
+    });
+
+    if (arquivos.length > LIMITE_PREVIEW_DOCUMENTOS) {
+        const botaoVerificar = document.createElement("button");
+        botaoVerificar.type = "button";
+        botaoVerificar.className = "btn-verificar-documentos";
+        botaoVerificar.innerHTML = `<i class="bi bi-images"></i><span>Verificar imagens (${arquivos.length})</span>`;
+        botaoVerificar.addEventListener("click", () => abrirModalDocumentos(input, arquivos));
+        preview.appendChild(botaoVerificar);
+    }
+}
+
+function atualizarModalDocumentos() {
+    if (!documentosEmVerificacao) {
+        return;
+    }
+
+    const { input, arquivos } = documentosEmVerificacao;
+    modalDocumentosConteudo.innerHTML = "";
+
+    if (!arquivos.length) {
+        const vazio = document.createElement("p");
+        vazio.className = "modal-documentos-vazio";
+        vazio.textContent = "Nenhuma imagem selecionada.";
+        modalDocumentosConteudo.appendChild(vazio);
+        return;
+    }
+
+    arquivos.forEach((arquivo, index) => {
+        modalDocumentosConteudo.appendChild(criarDocumentoPreviewItem(input, arquivos, arquivo, index));
+    });
+}
+
+function abrirModalDocumentos(input, arquivos) {
+    documentosEmVerificacao = { input, arquivos };
+    atualizarModalDocumentos();
+    modalDocumentos.hidden = false;
+    document.body.classList.add("modal-aberto");
+}
+
+function fecharModalDocumentos() {
+    modalDocumentos.hidden = true;
+    modalDocumentosConteudo.innerHTML = "";
+    documentosEmVerificacao = null;
+    document.body.classList.remove("modal-aberto");
+}
+
 function configurarDocumento(input) {
-    const nomeArquivo = input.closest(".input-file").querySelector(".arquivo-nome");
+    const arquivosSelecionados = [];
+
+    input.limparDocumentos = () => {
+        arquivosSelecionados.length = 0;
+        sincronizarArquivosDocumento(input, arquivosSelecionados);
+        atualizarPreviewDocumento(input, arquivosSelecionados);
+    };
 
     input.addEventListener("change", () => {
-        const arquivos = Array.from(input.files || []);
-        nomeArquivo.textContent = arquivos.length
-            ? arquivos.map((arquivo) => arquivo.name).join(", ")
-            : "Nenhum arquivo selecionado";
+        const arquivosNovos = Array.from(input.files || []);
+        const chavesSelecionadas = new Set(arquivosSelecionados.map(obterChaveArquivo));
+
+        arquivosNovos.forEach((arquivo) => {
+            const chave = obterChaveArquivo(arquivo);
+
+            if (!chavesSelecionadas.has(chave)) {
+                arquivosSelecionados.push(arquivo);
+                chavesSelecionadas.add(chave);
+            }
+        });
+
+        sincronizarArquivosDocumento(input, arquivosSelecionados);
+        atualizarPreviewDocumento(input, arquivosSelecionados);
     });
 }
 
@@ -1206,6 +1337,29 @@ function formatarData(valor) {
     return data.toLocaleDateString("pt-BR", { timeZone: "UTC" });
 }
 
+function converterHorasNumero(valor) {
+    const horas = Number(String(valor || "0").replace(",", "."));
+    return Number.isFinite(horas) ? horas : 0;
+}
+
+function formatarHoras(valor) {
+    return `${Number(valor || 0).toLocaleString("pt-BR", { maximumFractionDigits: 2 })}h`;
+}
+
+function obterPeriodoRegistros(dados, registros) {
+    const datas = [dados.dataInicioTfm, dados.dataFimTfm, dados.data, ...registros.map((registro) => registro.data)]
+        .map(normalizarDataInput)
+        .filter(Boolean)
+        .sort();
+    const datasUnicas = [...new Set(datas)];
+
+    return {
+        inicio: datasUnicas[0] || "",
+        fim: datasUnicas[datasUnicas.length - 1] || "",
+        variosDias: datasUnicas.length > 1
+    };
+}
+
 function normalizarDataInput(valor) {
     if (!valor) {
         return "";
@@ -1449,6 +1603,8 @@ function criarResultadoTfm(dados) {
     conteudo.className = "resultado-tfm";
     const registros = Array.isArray(dados.registros) ? dados.registros : [];
     const linksDocumento = separarLinksDocumento(dados.urlDocumento);
+    const totalHoras = registros.reduce((total, registro) => total + converterHorasNumero(registro.horas), 0);
+    const periodo = obterPeriodoRegistros(dados, registros);
 
     const cabecalho = document.createElement("div");
     cabecalho.className = "resultado-tfm-cabecalho";
@@ -1487,7 +1643,14 @@ function criarResultadoTfm(dados) {
 
     const resumo = document.createElement("div");
     resumo.className = "resultado-info-grid";
-    resumo.appendChild(criarLinhaResumo("Data", formatarData(dados.data)));
+    if (periodo.variosDias) {
+        resumo.appendChild(criarLinhaResumo("Início do TFM", formatarData(periodo.inicio)));
+        resumo.appendChild(criarLinhaResumo("Fim do TFM", formatarData(periodo.fim)));
+    } else {
+        resumo.appendChild(criarLinhaResumo("Data", formatarData(periodo.inicio || dados.data)));
+    }
+    resumo.appendChild(criarLinhaResumo("Horas totais", formatarHoras(totalHoras)));
+    resumo.appendChild(criarLinhaResumo("Atividades", registros.length || "-"));
     resumo.appendChild(criarLinhaResumo("Matrícula", dados.matricula));
     resumo.appendChild(criarLinhaResumo("Turno", dados.turno));
     resumo.appendChild(criarLinhaResumo("Projeto", dados.projeto));
@@ -1499,7 +1662,7 @@ function criarResultadoTfm(dados) {
     atividades.className = "resultado-atividades";
 
     const tituloAtividades = document.createElement("strong");
-    tituloAtividades.textContent = "Atividades registradas";
+    tituloAtividades.textContent = `Atividades registradas${registros.length ? ` (${registros.length})` : ""}`;
     atividades.appendChild(tituloAtividades);
 
     registros.forEach((registro) => {
@@ -1884,8 +2047,10 @@ async function salvarApontamentoConfirmado() {
             document.getElementById("nome").value = usuarioAtual.nome;
             matriculaInput.value = usuarioAtual.matricula;
         }
-        document.querySelectorAll(".arquivo-nome").forEach((nomeArquivo) => {
-            nomeArquivo.textContent = "Nenhum arquivo selecionado";
+        document.querySelectorAll(".documento-input").forEach((inputDocumento) => {
+            if (inputDocumento.limparDocumentos) {
+                inputDocumento.limparDocumentos();
+            }
         });
 
         document.querySelectorAll(".atividade-item").forEach((item, index) => {
@@ -2013,6 +2178,10 @@ document.querySelectorAll("[data-fechar-help]").forEach((elemento) => {
     elemento.addEventListener("click", fecharModalHelp);
 });
 
+document.querySelectorAll("[data-fechar-documentos]").forEach((elemento) => {
+    elemento.addEventListener("click", fecharModalDocumentos);
+});
+
 document.querySelectorAll("[data-fechar-sugestao]").forEach((elemento) => {
     elemento.addEventListener("click", fecharModalSugestao);
 });
@@ -2034,6 +2203,12 @@ document.querySelectorAll("[data-fechar-revisao]").forEach((elemento) => {
 });
 
 botoesHelp.forEach((botao) => botao.addEventListener("click", abrirModalHelp));
+botoesHelpFeedback.forEach((botao) => {
+    botao.addEventListener("click", () => {
+        fecharModalHelp();
+        abrirModalFeedback();
+    });
+});
 btnConfirmarSalvamento.addEventListener("click", salvarApontamentoConfirmado);
 btnImprimirRevisao.addEventListener("click", imprimirComprovante);
 btnEntrarLogin.addEventListener("click", entrarLogin);

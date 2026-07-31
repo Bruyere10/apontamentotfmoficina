@@ -124,6 +124,62 @@ body.login-bloqueado .btn-salvar-flutuante{
     width:300px;
 }
 
+.header-titulo-oficina{
+    align-items:center;
+    color:white;
+    display:flex;
+    flex:1;
+    gap:16px;
+    isolation:isolate;
+    justify-content:flex-end;
+    line-height:1;
+    min-width:300px;
+    padding:0 14px;
+    position:relative;
+    text-align:right;
+    text-transform:uppercase;
+}
+
+.header-titulo-oficina::before{
+    background:linear-gradient(90deg, transparent, rgba(255,255,255,0.16));
+    border-right:1px solid rgba(255,255,255,0.28);
+    content:"";
+    inset:-8px 8px -8px auto;
+    position:absolute;
+    width:min(340px, 38vw);
+    z-index:-1;
+}
+
+.header-motor-img{
+    filter:drop-shadow(0 10px 16px rgba(0,0,0,0.24));
+    flex:0 0 auto;
+    height:52px;
+    object-fit:contain;
+    width:72px;
+}
+
+.header-titulo-texto{
+    align-items:flex-end;
+    display:flex;
+    flex-direction:column;
+}
+
+.header-titulo-texto span{
+    color:rgba(255,255,255,0.72);
+    font-size:13px;
+    font-weight:800;
+    letter-spacing:0.28em;
+}
+
+.header-titulo-texto strong{
+    color:#ffffff;
+    font-size:30px;
+    font-weight:900;
+    letter-spacing:0.08em;
+    margin-top:4px;
+    text-shadow:0 10px 22px rgba(0,0,0,0.24);
+}
+
 .header-acoes{
     align-items:center;
     display:flex;
@@ -1024,6 +1080,10 @@ body.login-bloqueado .btn-salvar-flutuante{
     max-width:820px;
 }
 
+.modal-documentos-painel{
+    max-width:900px;
+}
+
 .modal-sugestao-painel{
     max-width:620px;
 }
@@ -1126,6 +1186,35 @@ body.login-bloqueado .btn-salvar-flutuante{
     color:var(--stellantis-muted);
     font-size:14px;
     line-height:1.45;
+}
+
+.help-item-destaque{
+    background:linear-gradient(180deg, #ffffff 0%, #f5f9ff 100%);
+    border-color:#b9cbed;
+}
+
+.btn-help-feedback{
+    align-items:center;
+    background:var(--stellantis-blue);
+    border:1px solid rgba(0,30,98,0.12);
+    border-radius:8px;
+    color:white;
+    cursor:pointer;
+    display:inline-flex;
+    font-size:13px;
+    font-weight:bold;
+    gap:7px;
+    margin-top:12px;
+    min-height:36px;
+    padding:8px 12px;
+    transition:background 0.18s, transform 0.18s;
+}
+
+.btn-help-feedback:hover,
+.btn-help-feedback:focus{
+    background:var(--stellantis-blue-strong);
+    outline:none;
+    transform:translateY(-1px);
 }
 
 .resultado-documento{
@@ -1486,6 +1575,49 @@ body.login-bloqueado .btn-salvar-flutuante{
     color:inherit;
     font-size:16px;
     line-height:1;
+}
+
+.btn-verificar-documentos{
+    align-items:center;
+    background:var(--stellantis-blue);
+    border:1px solid rgba(0,30,98,0.12);
+    border-radius:12px;
+    color:white;
+    cursor:pointer;
+    display:flex;
+    font-size:13px;
+    font-weight:bold;
+    gap:8px;
+    justify-content:center;
+    min-height:60px;
+    padding:10px 12px;
+    transition:background 0.18s, transform 0.18s;
+}
+
+.btn-verificar-documentos:hover,
+.btn-verificar-documentos:focus{
+    background:var(--stellantis-blue-strong);
+    outline:none;
+    transform:translateY(-1px);
+}
+
+.modal-documentos-conteudo{
+    display:grid;
+    gap:10px;
+    grid-template-columns:repeat(auto-fit, minmax(210px, 1fr));
+}
+
+.modal-documentos-conteudo .documento-preview-item{
+    min-height:72px;
+}
+
+.modal-documentos-vazio{
+    background:white;
+    border:1px solid var(--stellantis-line);
+    border-radius:12px;
+    color:var(--stellantis-muted);
+    font-weight:bold;
+    padding:18px;
 }
 
 .colaboradores-adicionais-campo{
@@ -2003,6 +2135,10 @@ body.login-bloqueado .btn-salvar-flutuante{
 .card:hover{
     box-shadow:var(--shadow-card-hover);
     transform:translateY(-1px);
+}
+
+.card.card-busca.tem-resultado-busca:hover{
+    transform:none;
 }
 
 select{
@@ -2702,6 +2838,39 @@ select{
         flex-direction:column;
         gap:14px;
         justify-content:center;
+    }
+
+    .header-titulo-oficina{
+        align-items:center;
+        flex-direction:column;
+        gap:8px;
+        min-width:0;
+        padding:0;
+        text-align:center;
+        width:100%;
+    }
+
+    .header-titulo-oficina::before{
+        inset:-8px 50% -8px auto;
+        transform:translateX(50%);
+        width:min(360px, 88vw);
+    }
+
+    .header-motor-img{
+        height:58px;
+        width:90px;
+    }
+
+    .header-titulo-texto{
+        align-items:center;
+    }
+
+    .header-titulo-texto span{
+        font-size:11px;
+    }
+
+    .header-titulo-texto strong{
+        font-size:28px;
     }
 
     .header-acoes{

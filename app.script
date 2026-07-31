@@ -491,11 +491,25 @@ function buscarDocumentosPorTfms(tfms) {
     }
 
     resultado.registros.unshift({
+      data: colunaData >= 0 ? linha[colunaData] : "",
       atividade: colunaAtividade >= 0 ? linha[colunaAtividade] : "",
       horas: colunaHoras >= 0 ? linha[colunaHoras] : "",
       observacao: colunaObservacao >= 0 ? linha[colunaObservacao] : ""
     });
   }
+
+  Object.keys(resultados).forEach((tfm) => {
+    const resultado = resultados[tfm];
+    const datas = resultado.registros
+      .map((registro) => registro.data)
+      .filter(Boolean)
+      .sort((dataA, dataB) => new Date(dataA) - new Date(dataB));
+
+    if (datas.length) {
+      resultado.dataInicioTfm = datas[0];
+      resultado.dataFimTfm = datas[datas.length - 1];
+    }
+  });
 
   return tfmsNormalizados.map((item) => resultados[item]);
 }
