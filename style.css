@@ -541,6 +541,7 @@ body.login-bloqueado::after{
     color:var(--stellantis-steel);
     font-size:clamp(12px, 1.1vw, 15px);
     font-weight:800;
+    justify-self:center;
     letter-spacing:0.08em;
     line-height:1.2;
     padding:10px 16px;
@@ -2831,6 +2832,87 @@ body.login-bloqueado::after{
     padding:14px;
 }
 
+.distribuicao-manual-campo{
+    background:#f8fbff;
+    border:1px solid #dce5f2;
+    border-left:4px solid rgba(47,128,237,0.45);
+    border-radius:8px;
+    gap:14px;
+    padding:14px;
+}
+
+.distribuicao-manual-topo{
+    align-items:center;
+    display:flex;
+    gap:14px;
+    justify-content:space-between;
+}
+
+.distribuicao-manual-topo label{
+    margin-bottom:4px;
+}
+
+.distribuicao-manual-topo small,
+.distribuicao-manual-resumo{
+    color:var(--stellantis-muted);
+    display:block;
+    font-size:12px;
+    line-height:1.35;
+}
+
+.switch-distribuicao{
+    align-items:center;
+    background:white;
+    border:1px solid #ccd7e6;
+    border-radius:999px;
+    color:var(--stellantis-blue);
+    cursor:pointer;
+    display:flex;
+    flex:0 0 auto;
+    font-size:13px;
+    font-weight:bold;
+    gap:8px;
+    margin:0;
+    padding:9px 12px;
+}
+
+.switch-distribuicao input{
+    accent-color:var(--stellantis-blue);
+    margin:0;
+}
+
+.distribuicao-manual-painel{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+}
+
+.distribuicao-manual-lista{
+    display:grid;
+    gap:10px;
+    grid-template-columns:repeat(2, minmax(0, 1fr));
+}
+
+.distribuicao-manual-item{
+    display:flex;
+    flex-direction:column;
+    min-width:0;
+}
+
+.distribuicao-manual-item label{
+    color:#263244;
+    font-size:13px;
+    margin-bottom:6px;
+}
+
+.distribuicao-manual-item .input-icon{
+    padding:0 10px;
+}
+
+.distribuicao-manual-item .input-icon input{
+    padding:12px 0;
+}
+
 .colaboradores-adicionais-topo{
     align-items:stretch;
     display:grid;
@@ -3464,6 +3546,10 @@ body.login-bloqueado::after{
     .dados-grid,
     .atividade-grid,
     .detalhes-grid{
+        grid-template-columns:1fr;
+    }
+
+    .distribuicao-manual-lista{
         grid-template-columns:1fr;
     }
 

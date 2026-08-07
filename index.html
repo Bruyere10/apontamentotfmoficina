@@ -172,7 +172,7 @@
                     <span>OFICINA</span>
                     <strong>MOTORES</strong>
                 </div>
-                <p>Registro de TFM • Disponibilidade diária</p>
+                <p>Registro de TFM</p>
             </div>
         </div>
     </section>
@@ -548,6 +548,25 @@
                                 <div class="input-icon">
                                     <i class="bi bi-calendar-check"></i>
                                     <input id="data-fim-tfm" name="dataFimTfm" type="date" required>
+                                </div>
+                            </div>
+
+                            <div class="campo campo-inteiro distribuicao-manual-campo">
+                                <div class="distribuicao-manual-topo">
+                                    <div>
+                                        <label for="distribuicao-manual-toggle">Horas por dia</label>
+                                        <small>Opcional: preencha manualmente quando as horas forem diferentes em cada data.</small>
+                                    </div>
+
+                                    <label class="switch-distribuicao" for="distribuicao-manual-toggle">
+                                        <input id="distribuicao-manual-toggle" type="checkbox">
+                                        <span>Manual</span>
+                                    </label>
+                                </div>
+
+                                <div id="distribuicao-manual-painel" class="distribuicao-manual-painel" hidden>
+                                    <div id="distribuicao-manual-lista" class="distribuicao-manual-lista"></div>
+                                    <small id="distribuicao-manual-resumo" class="distribuicao-manual-resumo">Informe as horas de cada dia.</small>
                                 </div>
                             </div>
 

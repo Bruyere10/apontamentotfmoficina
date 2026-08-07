@@ -143,6 +143,10 @@ const desempenhoRanking = document.getElementById("desempenho-ranking");
 const desempenhoVazio = document.getElementById("desempenho-vazio");
 const oficinaGeralStatus = document.getElementById("oficina-geral-status");
 const oficinaGeralGrafico = document.getElementById("oficina-geral-grafico");
+const distribuicaoManualToggle = document.getElementById("distribuicao-manual-toggle");
+const distribuicaoManualPainel = document.getElementById("distribuicao-manual-painel");
+const distribuicaoManualLista = document.getElementById("distribuicao-manual-lista");
+const distribuicaoManualResumo = document.getElementById("distribuicao-manual-resumo");
 const abaAcesso = document.getElementById("aba-acesso");
 const abaConsultar = document.getElementById("aba-consultar");
 const painelAcesso = document.getElementById("painel-acesso");
@@ -489,6 +493,143 @@ function distribuirHorasNoPeriodo(horas, dataInicio, dataFim) {
         data,
         horas: Number(((base + (index < resto ? 1 : 0)) / 100).toFixed(2))
     }));
+}
+
+function obterDataInicioTfmInput() {
+    return document.getElementById("data-inicio-tfm");
+}
+
+function obterDataFimTfmInput() {
+    return document.getElementById("data-fim-tfm");
+}
+
+function somarHorasAtividadesFormulario() {
+    return Array.from(document.querySelectorAll(".detalhes-item .horas-input")).reduce((total, input) => {
+        return total + converterHorasNumero(input.value);
+    }, 0);
+}
+
+function atualizarResumoDistribuicaoManual() {
+    if (!distribuicaoManualResumo) {
+        return;
+    }
+
+    const totalManual = Array.from(document.querySelectorAll(".distribuicao-manual-horas")).reduce((total, input) => {
+        return total + converterHorasNumero(input.value);
+    }, 0);
+    const totalAtividades = somarHorasAtividadesFormulario();
+
+    distribuicaoManualResumo.textContent = `Total por dia: ${formatarHoras(totalManual)} de ${formatarHoras(totalAtividades)} informadas nas atividades.`;
+}
+
+function renderizarCamposDistribuicaoManual() {
+    if (!distribuicaoManualLista || !distribuicaoManualToggle?.checked) {
+        atualizarResumoDistribuicaoManual();
+        return;
+    }
+
+    const dataInicio = obterDataInicioTfmInput()?.value;
+    const dataFim = obterDataFimTfmInput()?.value;
+    const valoresAtuais = new Map(Array.from(document.querySelectorAll(".distribuicao-manual-horas")).map((input) => [input.dataset.data, input.value]));
+
+    distribuicaoManualLista.innerHTML = "";
+
+    if (!dataInicio || !dataFim || dataFim < dataInicio) {
+        distribuicaoManualResumo.textContent = "Informe um período válido para preencher as horas por dia.";
+        return;
+    }
+
+    criarDatasUteisPeriodo(dataInicio, dataFim).forEach((data) => {
+        const item = document.createElement("div");
+        item.className = "distribuicao-manual-item";
+        item.innerHTML = `
+            <label for="horas-dia-${data}">${formatarData(data)}</label>
+            <div class="input-icon">
+                <i class="bi bi-clock-history"></i>
+                <input id="horas-dia-${data}" type="text" class="distribuicao-manual-horas" data-data="${data}" placeholder="0" inputmode="decimal" pattern="[0-9]+(\.[0-9]+)?">
+            </div>
+        `;
+        item.querySelector("input").value = valoresAtuais.get(data) || "";
+        distribuicaoManualLista.appendChild(item);
+    });
+
+    atualizarResumoDistribuicaoManual();
+}
+
+function alternarDistribuicaoManual() {
+    if (!distribuicaoManualPainel || !distribuicaoManualToggle) {
+        return;
+    }
+
+    distribuicaoManualPainel.hidden = !distribuicaoManualToggle.checked;
+
+    if (!distribuicaoManualToggle.checked) {
+        if (distribuicaoManualLista) {
+            distribuicaoManualLista.innerHTML = "";
+        }
+
+        if (distribuicaoManualResumo) {
+            distribuicaoManualResumo.textContent = "Informe as horas de cada dia.";
+        }
+
+        return;
+    }
+
+    renderizarCamposDistribuicaoManual();
+}
+
+function coletarDistribuicaoManualDiaria() {
+    if (!distribuicaoManualToggle?.checked) {
+        return [];
+    }
+
+    return Array.from(document.querySelectorAll(".distribuicao-manual-horas")).map((input) => ({
+        data: input.dataset.data,
+        horas: Number(converterHorasNumero(input.value).toFixed(2)),
+        input
+    }));
+}
+
+function distribuirCentavosPorPeso(totalCentavos, pesosCentavos) {
+    const totalPesos = pesosCentavos.reduce((total, peso) => total + peso, 0);
+
+    if (!totalCentavos || !totalPesos) {
+        return pesosCentavos.map(() => 0);
+    }
+
+    const distribuicao = pesosCentavos.map((peso, index) => {
+        const bruto = (totalCentavos * peso) / totalPesos;
+        return {
+            index,
+            valor: Math.floor(bruto),
+            resto: bruto - Math.floor(bruto)
+        };
+    });
+    let restante = totalCentavos - distribuicao.reduce((total, item) => total + item.valor, 0);
+
+    distribuicao.sort((primeiro, segundo) => segundo.resto - primeiro.resto).forEach((item) => {
+        if (restante > 0) {
+            item.valor += 1;
+            restante -= 1;
+        }
+    });
+
+    return distribuicao.sort((primeiro, segundo) => primeiro.index - segundo.index).map((item) => item.valor);
+}
+
+function distribuirHorasManuaisPorAtividade(atividade, atividades, distribuicaoManual) {
+    const pesosAtividades = atividades.map((item) => Math.round(converterHorasNumero(item.horas) * 100));
+    const indiceAtividade = atividades.indexOf(atividade);
+
+    return distribuicaoManual.map((dia) => {
+        const totalDiaCentavos = Math.round(converterHorasNumero(dia.horas) * 100);
+        const horasAtividadeCentavos = distribuirCentavosPorPeso(totalDiaCentavos, pesosAtividades)[indiceAtividade] || 0;
+
+        return {
+            data: dia.data,
+            horas: Number((horasAtividadeCentavos / 100).toFixed(2))
+        };
+    });
 }
 
 function atualizarResumo() {
@@ -1480,6 +1621,7 @@ function adicionarAtividadeDoModal() {
     }
 
     atualizarResumoAtividadeItem(item);
+    atualizarResumoDistribuicaoManual();
     fecharModalAtividade();
     limparFeedback();
     atualizarResumo();
@@ -2451,6 +2593,11 @@ function carregarTfmNoFormulario(dados) {
     const dataInicio = normalizarDataInput(dados.dataInicioTfm || dados.data);
     const dataFim = normalizarDataInput(dados.dataFimTfm || dados.dataInicioTfm || dados.data);
 
+    if (distribuicaoManualToggle) {
+        distribuicaoManualToggle.checked = false;
+        alternarDistribuicaoManual();
+    }
+
     document.getElementById("data-inicio-tfm").value = dataInicio;
     document.getElementById("data-fim-tfm").value = dataFim;
     document.getElementById("nome").value = dados.nome || "";
@@ -2482,6 +2629,7 @@ function carregarTfmNoFormulario(dados) {
     });
 
     renumerarAtividades();
+    atualizarResumoDistribuicaoManual();
     fecharModalTfm();
     mostrarFeedback("Dados carregados no formulário. Confira antes de salvar novamente.", "aviso");
 }
@@ -2540,6 +2688,29 @@ function validarFormulario() {
         return false;
     }
 
+    if (distribuicaoManualToggle?.checked) {
+        const distribuicaoManual = coletarDistribuicaoManualDiaria();
+        const totalManual = distribuicaoManual.reduce((total, dia) => total + converterHorasNumero(dia.horas), 0);
+        const totalAtividades = somarHorasAtividadesFormulario();
+        const campoIncompleto = distribuicaoManual.find((dia) => !dia.input.value.trim());
+
+        distribuicaoManual.forEach((dia) => {
+            marcarCampo(dia.input, !dia.input.value.trim(), "Informe as horas desse dia ou desative a distribuição manual.");
+        });
+
+        if (campoIncompleto) {
+            mostrarFeedback("Preencha as horas de todos os dias ou desative a distribuição manual.", "erro");
+            campoIncompleto.input.focus();
+            return false;
+        }
+
+        if (Math.abs(totalManual - totalAtividades) > 0.01) {
+            mostrarFeedback(`A soma das horas por dia precisa ser igual ao total das atividades (${formatarHoras(totalAtividades)}).`, "erro");
+            distribuicaoManual[0]?.input.focus();
+            return false;
+        }
+    }
+
     if (!valido) {
         const primeiroInvalido = form.querySelector(":invalid") || document.querySelector(".campo-invalido input");
         mostrarFeedback("Revise os campos obrigatórios antes de salvar.", "erro");
@@ -2557,9 +2728,13 @@ async function prepararDadosApontamento() {
     const dataFimTfm = document.getElementById("data-fim-tfm").value;
     const atividades = await coletarAtividades();
     const colaboradoresAdicionais = coletarColaboradoresAdicionais();
+    const distribuicaoManual = coletarDistribuicaoManualDiaria();
+    const usarDistribuicaoManual = distribuicaoManual.length > 0;
     const atividadesDistribuidas = atividades.map((atividade) => ({
         ...atividade,
-        distribuicaoDiaria: distribuirHorasNoPeriodo(atividade.horas, dataInicioTfm, dataFimTfm)
+        distribuicaoDiaria: usarDistribuicaoManual
+            ? distribuirHorasManuaisPorAtividade(atividade, atividades, distribuicaoManual)
+            : distribuirHorasNoPeriodo(atividade.horas, dataInicioTfm, dataFimTfm)
     }));
 
     return {
@@ -2575,6 +2750,7 @@ async function prepararDadosApontamento() {
         projeto: document.getElementById("projeto").value,
         colaboradoresAdicionais,
         documentos: await prepararDocumentos(document.getElementById("documento-1")),
+        distribuicaoManualAtiva: usarDistribuicaoManual,
         atividades: atividadesDistribuidas,
         distribuicaoDiaria: atividadesDistribuidas.flatMap((atividade) => (
             atividade.distribuicaoDiaria.map((dia) => ({
@@ -2639,6 +2815,7 @@ async function salvarApontamentoConfirmado() {
         mostrarFeedback("Dados enviados com sucesso!", "sucesso");
         form.reset();
         configurarDataAtual();
+        alternarDistribuicaoManual();
         if (usuarioAtual) {
             document.getElementById("nome").value = usuarioAtual.nome;
             matriculaInput.value = usuarioAtual.matricula;
@@ -2772,7 +2949,23 @@ detalhesContainer.addEventListener("input", (event) => {
     }
 
     aplicarSeparadorDecimalPonto(event.target);
-    atualizarSaldoDiario();
+    atualizarResumoDistribuicaoManual();
+});
+
+distribuicaoManualToggle?.addEventListener("change", alternarDistribuicaoManual);
+distribuicaoManualLista?.addEventListener("input", (event) => {
+    if (!event.target.matches(".distribuicao-manual-horas")) {
+        return;
+    }
+
+    aplicarSeparadorDecimalPonto(event.target);
+    marcarCampo(event.target, false);
+    atualizarResumoDistribuicaoManual();
+});
+
+[obterDataInicioTfmInput(), obterDataFimTfmInput()].forEach((input) => {
+    input?.addEventListener("input", renderizarCamposDistribuicaoManual);
+    input?.addEventListener("change", renderizarCamposDistribuicaoManual);
 });
 
 modalHorasInput.addEventListener("input", () => {
