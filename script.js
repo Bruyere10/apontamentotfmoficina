@@ -63,7 +63,11 @@ const atividadesDisponiveis = [
     "Instrumentação de coletor de admissão",
     "Troca de catalisador no motor na cela",
     "Preparação de motor para rodagem em cela",
-    "Montagem de motor CCP controle parcial"
+    "Montagem de motor CCP controle parcial",
+    "Preparação de motor revista para devolução a manufatura, realização de check list",
+    "Armazenamento dos componentes de motor em kit",
+    "Substituição do suporte do A/C",
+    "Atividade troca de bateria H.V veículo J3U HEV"
 ];
 
 const btnAdd = document.querySelector(".btn-add");
@@ -73,7 +77,7 @@ const btnAbrirSugestao = document.querySelector(".btn-abrir-sugestao");
 const btnAbrirFeedback = document.querySelector(".btn-abrir-feedback");
 const btnSugerirAtividade = document.querySelector(".btn-sugerir-atividade");
 const btnEnviarFeedback = document.querySelector(".btn-enviar-feedback");
-const form = document.getElementById("form-apontamento");
+const form = document.getElementById("form-registro");
 const container = document.getElementById("atividades-lista");
 const detalhesContainer = document.getElementById("detalhes-lista");
 const buscaTfmInput = document.getElementById("busca-tfm");
@@ -95,6 +99,7 @@ const modalHelp = document.getElementById("modal-help");
 const modalDocumentos = document.getElementById("modal-documentos");
 const modalDocumentosConteudo = document.getElementById("modal-documentos-conteudo");
 const botoesHelp = document.querySelectorAll(".btn-help");
+const botoesHelpSugestao = document.querySelectorAll(".btn-help-sugestao");
 const botoesHelpFeedback = document.querySelectorAll(".btn-help-feedback");
 const btnConfirmarAtividade = document.querySelector(".btn-confirmar-atividade");
 const btnConfirmarColaborador = document.querySelector(".btn-confirmar-colaborador");
@@ -124,6 +129,20 @@ const feedbackGlobal = document.getElementById("feedback-global");
 const resumoAtividades = document.getElementById("resumo-atividades");
 const resumoSalvos = document.getElementById("resumo-salvos");
 const resumoUltimoTfm = document.getElementById("resumo-ultimo-tfm");
+const desempenhoTotalHoras = document.getElementById("desempenho-total-horas");
+const desempenhoTotalAtividades = document.getElementById("desempenho-total-atividades");
+const desempenhoTotalTfms = document.getElementById("desempenho-total-tfms");
+const desempenhoDiasApontados = document.getElementById("desempenho-dias-apontados");
+const desempenhoMediaDia = document.getElementById("desempenho-media-dia");
+const desempenhoMediaAtividade = document.getElementById("desempenho-media-atividade");
+const desempenhoPeriodoInicio = document.getElementById("desempenho-periodo-inicio");
+const desempenhoPeriodoFim = document.getElementById("desempenho-periodo-fim");
+const desempenhoPeriodoInfo = document.getElementById("desempenho-periodo-info");
+const desempenhoCalendario = document.getElementById("desempenho-calendario");
+const desempenhoRanking = document.getElementById("desempenho-ranking");
+const desempenhoVazio = document.getElementById("desempenho-vazio");
+const oficinaGeralStatus = document.getElementById("oficina-geral-status");
+const oficinaGeralGrafico = document.getElementById("oficina-geral-grafico");
 const abaAcesso = document.getElementById("aba-acesso");
 const abaConsultar = document.getElementById("aba-consultar");
 const painelAcesso = document.getElementById("painel-acesso");
@@ -134,16 +153,23 @@ const loginConsultaFeedback = document.getElementById("login-consulta-feedback")
 const loginResultadoBusca = document.getElementById("login-resultado-busca");
 const historicoLista = document.getElementById("historico-lista");
 const revisaoConteudo = document.getElementById("revisao-conteudo");
+const revisaoSalvamentoStatus = document.getElementById("revisao-salvamento-status");
 const colaboradoresAdicionaisLista = document.getElementById("colaboradores-adicionais-lista");
 const btnAddColaborador = document.querySelector(".btn-add-colaborador");
 const LOGIN_CHAVE = "stellantisUsuarioLogado";
 const HISTORICO_CHAVE = "stellantisHistoricoApontamentos";
-const LIMITE_HISTORICO = 5;
+const LIMITE_HISTORICO = 60;
+const LIMITE_HISTORICO_VISIVEL = 5;
 const TIPOS_DOCUMENTO_PERMITIDOS = ["application/pdf", "image/png", "image/jpeg"];
 const ETAPAS_SALVAMENTO = [
     "Pegando os dados...",
     "Conferindo anexos...",
-    "Salvando na planilha...",
+    "Salvando no Banco de Dados...",
+    "Aguarde, quase lá..."
+];
+const ETAPAS_CONSULTA_TFM = [
+    "Procurando TFM...",
+    "Consultando o Banco de Dados...",
     "Aguarde, quase lá..."
 ];
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbycpTr1Vj5nCByX2gYKvaXnhw7EiBUYqlnRq7ClSoqr2ZNBNvAUqvW2br6ksyAJDcxO/exec";
@@ -152,10 +178,18 @@ let resumoPlanilhaCarregado = false;
 let historicoAtual = [];
 let apontamentoPendente = null;
 let usuarioAtual = null;
+let desempenhoRegistrosPlanilha = null;
+let desempenhoPlanilhaMatricula = "";
+let desempenhoRequisicaoAtual = 0;
+let desempenhoCarregando = false;
+let desempenhoErro = "";
+let oficinaGeralCarregada = false;
+let oficinaGeralRequisicaoAtual = 0;
 let atividadeEmEdicao = null;
 let colaboradorEmEdicao = null;
 let documentosEmVerificacao = null;
 let salvamentoIntervalo = null;
+let consultaTfmIntervalo = null;
 const cacheConsultaTfms = new Map();
 let buscaEmLoteDisponivel = true;
 const colaboradores = [
@@ -163,6 +197,7 @@ const colaboradores = [
     { matricula: "61449", nome: "Ailton Dos Reis Santana" },
     { matricula: "61618", nome: "Airton Fonseca do Nascimento" },
     { matricula: "90079", nome: "Albert de Almeida Libério" },
+    { matricula: "61557", nome: "Aldecir de Oliveira Chaves" },
     { matricula: "105741",nome: "Caio Resende Soares" },
     { matricula: "61526", nome: "Cláudio Roberto Miranda" },
     { matricula: "61461", nome: "Cleiton De Souza" },
@@ -259,6 +294,68 @@ function limparResultadoBuscaLogin() {
     loginResultadoBusca.innerHTML = "";
 }
 
+function criarCarregamentoConsulta(mensagem) {
+    const conteudo = document.createElement("div");
+    conteudo.className = "consulta-carregamento salvando";
+    conteudo.innerHTML = `
+        <div class="consulta-carregamento-icone"><i class="bi bi-search"></i></div>
+        <div>
+            <strong data-consulta-status-texto>${mensagem}</strong>
+            <span>Isso pode levar alguns segundos quando há muitos TFMs.</span>
+        </div>
+    `;
+    return conteudo;
+}
+
+function atualizarMensagemConsulta(container, mensagem) {
+    const texto = container?.querySelector("[data-consulta-status-texto]");
+
+    if (texto) {
+        texto.textContent = mensagem;
+    }
+}
+
+function iniciarAnimacaoConsulta(container, totalTfms = 1) {
+    const etapas = [...ETAPAS_CONSULTA_TFM];
+
+    if (totalTfms > 1) {
+        etapas[0] = `Procurando ${totalTfms} TFMs...`;
+    }
+
+    let etapaAtual = 0;
+    clearInterval(consultaTfmIntervalo);
+    atualizarMensagemConsulta(container, etapas[etapaAtual]);
+
+    consultaTfmIntervalo = setInterval(() => {
+        etapaAtual = Math.min(etapaAtual + 1, etapas.length - 1);
+        atualizarMensagemConsulta(container, etapas[etapaAtual]);
+    }, 1400);
+}
+
+function pararAnimacaoConsulta() {
+    clearInterval(consultaTfmIntervalo);
+    consultaTfmIntervalo = null;
+}
+
+function mostrarCarregamentoBusca(totalTfms) {
+    resultadoBusca.hidden = false;
+    resultadoBuscaBackdrop.hidden = false;
+    resultadoBusca.className = "resultado-busca resultado-busca-carregando";
+    resultadoBusca.closest(".card-busca").classList.add("tem-resultado-busca");
+    document.body.classList.add("resultado-busca-aberto");
+    resultadoBusca.innerHTML = "";
+    resultadoBusca.appendChild(criarCarregamentoConsulta("Procurando TFM..."));
+    iniciarAnimacaoConsulta(resultadoBusca, totalTfms);
+}
+
+function mostrarCarregamentoBuscaLogin(totalTfms) {
+    loginResultadoBusca.hidden = false;
+    loginResultadoBusca.className = "resultado-busca login-resultado-busca resultado-busca-carregando";
+    loginResultadoBusca.innerHTML = "";
+    loginResultadoBusca.appendChild(criarCarregamentoConsulta("Procurando TFM..."));
+    iniciarAnimacaoConsulta(loginResultadoBusca, totalTfms);
+}
+
 function limparErroCampo(input) {
     const campo = input.closest(".campo");
     campo?.querySelector(".campo-mensagem")?.remove();
@@ -275,6 +372,37 @@ function marcarCampo(input, invalido, mensagem = "") {
         alerta.textContent = mensagem;
         campo?.appendChild(alerta);
     }
+}
+
+function atividadeEstaNaLista(atividade) {
+    const atividadeNormalizada = normalizarTexto(String(atividade || "").trim());
+
+    return atividadesDisponiveis.some((opcao) => normalizarTexto(opcao) === atividadeNormalizada);
+}
+
+function redirecionarParaSugestaoAtividade(atividade = "") {
+    fecharModalAtividade();
+    sugestaoAtividadeInput.value = atividade.trim();
+    sugestaoObservacaoInput.value = "";
+    abrirModalSugestao();
+}
+
+function mostrarAvisoAtividadeNaoCadastrada(atividade = "") {
+    mostrarFeedback("Essa atividade não está cadastrada. Para usar uma nova atividade, envie uma sugestão para avaliação.", "erro");
+    redirecionarParaSugestaoAtividade(atividade);
+}
+
+function validarAtividadeCadastrada(input, redirecionar = false) {
+    const atividade = input.value.trim();
+    const invalida = Boolean(atividade) && !atividadeEstaNaLista(atividade);
+
+    marcarCampo(input, invalida, "Selecione uma atividade já cadastrada na lista.");
+
+    if (invalida && redirecionar) {
+        mostrarAvisoAtividadeNaoCadastrada(atividade);
+    }
+
+    return !invalida;
 }
 
 function limitarParaNumeros(input, limite) {
@@ -343,8 +471,16 @@ function criarDatasPeriodo(dataInicio, dataFim) {
     return datas;
 }
 
+function criarDatasUteisPeriodo(dataInicio, dataFim) {
+    return criarDatasPeriodo(dataInicio, dataFim).filter((data) => {
+        const diaSemana = criarDataLocal(data).getDay();
+
+        return diaSemana >= 1 && diaSemana <= 6;
+    });
+}
+
 function distribuirHorasNoPeriodo(horas, dataInicio, dataFim) {
-    const datas = criarDatasPeriodo(dataInicio, dataFim);
+    const datas = criarDatasUteisPeriodo(dataInicio, dataFim);
     const totalCentavosHora = Math.round(Number(horas || 0) * 100);
     const base = Math.floor(totalCentavosHora / datas.length);
     const resto = totalCentavosHora % datas.length;
@@ -359,6 +495,7 @@ function atualizarResumo() {
     const historico = historicoAtual.length ? historicoAtual : obterHistorico();
     const ultimoTfm = historico.find((item) => item.tfm)?.tfm;
 
+    atualizarDesempenho();
     resumoUltimoTfm.textContent = ultimoTfm || "-";
 
     if (resumoPlanilhaCarregado) {
@@ -407,7 +544,7 @@ function renderizarHistorico(historico = obterHistorico()) {
         return;
     }
 
-    historicoAtual.slice(0, LIMITE_HISTORICO).forEach((item) => {
+    historicoAtual.slice(0, LIMITE_HISTORICO_VISIVEL).forEach((item) => {
         const registro = document.createElement("article");
         const info = document.createElement("div");
         const atividade = document.createElement("strong");
@@ -431,7 +568,7 @@ function renderizarHistorico(historico = obterHistorico()) {
 
 async function carregarHistoricoPlanilha() {
     try {
-        const resposta = await fetch(`${SCRIPT_URL}?acao=historicoRecentes&limite=${LIMITE_HISTORICO}`);
+        const resposta = await fetch(`${SCRIPT_URL}?acao=historicoRecentes&limite=${LIMITE_HISTORICO_VISIVEL}`);
 
         if (!resposta.ok) {
             throw new Error("Erro ao consultar histórico da planilha.");
@@ -529,6 +666,7 @@ function aplicarUsuarioLogado(colaborador) {
     document.getElementById("nome").value = colaborador.nome;
     matriculaInput.value = colaborador.matricula;
     limparFeedbackLogin();
+    carregarDesempenhoColaborador();
 }
 
 function exigirLogin() {
@@ -548,6 +686,7 @@ function exigirLogin() {
     telaLogin.hidden = false;
     usuarioLogado.hidden = true;
     loginAlternativo.hidden = true;
+    carregarDesempenhoColaborador();
     loginNomeInput.focus();
     fecharSugestoes();
 }
@@ -584,10 +723,12 @@ async function buscarTfmLogin() {
     const icone = btnBuscarLogin.querySelector("i");
     const texto = btnBuscarLogin.querySelector("span");
     btnBuscarLogin.disabled = true;
+    btnBuscarLogin.classList.add("salvando");
     icone.className = "bi bi-gear-fill";
     texto.textContent = "Buscando...";
 
     try {
+        mostrarCarregamentoBuscaLogin(tfms.length);
         const resultados = await consultarListaTfms(tfms);
 
         if (!resultados[0].encontrado) {
@@ -602,7 +743,9 @@ async function buscarTfmLogin() {
         loginConsultaFeedback.textContent = "Erro ao buscar o TFM. Tente novamente.";
         console.error(erro);
     } finally {
+        pararAnimacaoConsulta();
         btnBuscarLogin.disabled = false;
+        btnBuscarLogin.classList.remove("salvando");
         icone.className = "bi bi-search";
         texto.textContent = "Buscar TFM";
     }
@@ -1078,11 +1221,45 @@ function alterarEstadoSalvando(estaSalvando, mensagem = "Salvando...") {
     btnSalvar.disabled = estaSalvando;
     btnSalvar.classList.toggle("salvando", estaSalvando);
     icone.className = estaSalvando ? "bi bi-arrow-repeat" : "bi bi-floppy";
-    texto.textContent = estaSalvando ? mensagem : "Salvar Apontamento";
+    texto.textContent = estaSalvando ? mensagem : "Salvar Registro";
+}
+
+function alterarEstadoConfirmacaoSalvamento(estaSalvando, mensagem = "Salvando...") {
+    const icone = btnConfirmarSalvamento?.querySelector("i");
+    const texto = btnConfirmarSalvamento?.querySelector("span");
+
+    if (!btnConfirmarSalvamento || !icone || !texto) {
+        return;
+    }
+
+    btnConfirmarSalvamento.disabled = estaSalvando;
+    btnConfirmarSalvamento.classList.toggle("salvando", estaSalvando);
+    icone.className = estaSalvando ? "bi bi-arrow-repeat" : "bi bi-check2-circle";
+    texto.textContent = estaSalvando ? mensagem : "Confirmar e salvar";
+}
+
+function mostrarErroSalvamento(mensagem) {
+    if (revisaoSalvamentoStatus && modalRevisao && !modalRevisao.hidden) {
+        revisaoSalvamentoStatus.hidden = false;
+        revisaoSalvamentoStatus.className = "revisao-salvamento-status erro";
+        revisaoSalvamentoStatus.textContent = mensagem;
+        return;
+    }
+
+    mostrarFeedback(mensagem, "erro");
 }
 
 function atualizarEtapaSalvamento(mensagem) {
     alterarEstadoSalvando(true, mensagem);
+    alterarEstadoConfirmacaoSalvamento(true, mensagem);
+
+    if (revisaoSalvamentoStatus && modalRevisao && !modalRevisao.hidden) {
+        revisaoSalvamentoStatus.hidden = false;
+        revisaoSalvamentoStatus.className = "revisao-salvamento-status salvando";
+        revisaoSalvamentoStatus.textContent = mensagem;
+        return;
+    }
+
     feedbackGlobal.hidden = false;
     feedbackGlobal.className = "feedback-global aviso salvando";
     feedbackGlobal.textContent = mensagem;
@@ -1177,25 +1354,27 @@ function fecharModalHelp() {
 }
 
 function abrirModalSugestao() {
-    modalSugestao.hidden = false;
-    document.body.classList.add("modal-aberto");
-    sugestaoAtividadeInput.focus();
+    alternarAppTab("sugestao");
+    sugestaoAtividadeInput?.focus();
 }
 
 function fecharModalSugestao() {
-    modalSugestao.hidden = true;
-    document.body.classList.remove("modal-aberto");
+    if (modalSugestao) {
+        modalSugestao.hidden = true;
+        document.body.classList.remove("modal-aberto");
+    }
 }
 
 function abrirModalFeedback() {
-    modalFeedback.hidden = false;
-    document.body.classList.add("modal-aberto");
-    feedbackTextoInput.focus();
+    alternarAppTab("feedback");
+    feedbackTextoInput?.focus();
 }
 
 function fecharModalFeedback() {
-    modalFeedback.hidden = true;
-    document.body.classList.remove("modal-aberto");
+    if (modalFeedback) {
+        modalFeedback.hidden = true;
+        document.body.classList.remove("modal-aberto");
+    }
 }
 
 function abrirModalAtividade(item = null) {
@@ -1258,19 +1437,35 @@ function abrirModalRevisao(dados) {
 }
 
 function fecharModalRevisao() {
+    if (salvamentoIntervalo) {
+        return;
+    }
+
     modalRevisao.hidden = true;
     apontamentoPendente = null;
     revisaoConteudo.innerHTML = "";
+    if (revisaoSalvamentoStatus) {
+        revisaoSalvamentoStatus.hidden = true;
+        revisaoSalvamentoStatus.textContent = "";
+        revisaoSalvamentoStatus.className = "revisao-salvamento-status";
+    }
     document.body.classList.remove("modal-aberto");
 }
 
 function adicionarAtividadeDoModal() {
     const atividade = modalAtividadeInput.value.trim();
+    const horas = normalizarHoras(modalHorasInput.value);
+    const horasNumero = Number(horas);
 
     marcarCampo(modalAtividadeInput, !atividade);
+    marcarCampo(modalHorasInput, !horasNumero || horasNumero <= 0, "Informe as horas da atividade.");
 
-    if (!atividade) {
-        mostrarFeedback("Informe a atividade antes de adicionar.", "erro");
+    if (!atividade || !horasNumero || horasNumero <= 0) {
+        mostrarFeedback("Informe atividade e horas antes de adicionar.", "erro");
+        return;
+    }
+
+    if (!validarAtividadeCadastrada(modalAtividadeInput, true)) {
         return;
     }
 
@@ -1278,7 +1473,7 @@ function adicionarAtividadeDoModal() {
 
     item.querySelector(".atividade-input").value = atividade;
     item.querySelector(".observacao-input").value = modalObservacaoInput.value.trim();
-    item.querySelector(".horas-input").value = normalizarHoras(modalHorasInput.value);
+    item.querySelector(".horas-input").value = horas;
 
     if (!atividadeEmEdicao) {
         detalhesContainer.appendChild(item);
@@ -1346,6 +1541,391 @@ function formatarHoras(valor) {
     return `${Number(valor || 0).toLocaleString("pt-BR", { maximumFractionDigits: 2 })}h`;
 }
 
+function obterMatriculaDesempenho() {
+    return String(usuarioAtual?.matricula || matriculaInput?.value || "").trim();
+}
+
+function obterHistoricoUsuarioAtual() {
+    const matricula = obterMatriculaDesempenho();
+
+    if (!matricula) {
+        return [];
+    }
+
+    return obterHistorico().filter((item) => String(item.matricula || "").trim() === matricula);
+}
+
+function obterRegistrosDesempenho() {
+    const matricula = obterMatriculaDesempenho();
+
+    if (Array.isArray(desempenhoRegistrosPlanilha) && desempenhoPlanilhaMatricula === matricula) {
+        return desempenhoRegistrosPlanilha.filter((item) => String(item.matricula || "").trim() === matricula);
+    }
+
+    return [];
+}
+
+function obterDataRegistroDesempenho(registro) {
+    return normalizarDataInput(registro.data);
+}
+
+function obterPeriodoDesempenho() {
+    return {
+        inicio: desempenhoPeriodoInicio?.value || "",
+        fim: desempenhoPeriodoFim?.value || ""
+    };
+}
+
+function filtrarRegistrosDesempenho(registros) {
+    const { inicio, fim } = obterPeriodoDesempenho();
+
+    return registros.filter((registro) => {
+        const data = obterDataRegistroDesempenho(registro);
+
+        if ((inicio || fim) && !data) {
+            return false;
+        }
+
+        if (inicio && data < inicio) {
+            return false;
+        }
+
+        if (fim && data > fim) {
+            return false;
+        }
+
+        return true;
+    });
+}
+
+function obterDatasExtremasDesempenho(registros) {
+    const datas = registros.map(obterDataRegistroDesempenho).filter(Boolean).sort();
+
+    return {
+        inicio: datas[0] || "",
+        fim: datas[datas.length - 1] || ""
+    };
+}
+
+function atualizarInfoPeriodoDesempenho(totalBanco, totalFiltrado) {
+    if (!desempenhoPeriodoInfo) {
+        return;
+    }
+
+    const { inicio, fim } = obterPeriodoDesempenho();
+
+    if (inicio || fim) {
+        const inicioTexto = inicio ? formatarData(inicio) : "início";
+        const fimTexto = fim ? formatarData(fim) : "hoje";
+        desempenhoPeriodoInfo.textContent = `${totalFiltrado} de ${totalBanco} registro(s) no período de ${inicioTexto} a ${fimTexto}.`;
+        return;
+    }
+
+    desempenhoPeriodoInfo.textContent = `${totalBanco} registro(s) carregado(s) do banco de dados.`;
+}
+
+async function carregarDesempenhoColaborador() {
+    const matricula = obterMatriculaDesempenho();
+    const requisicao = desempenhoRequisicaoAtual + 1;
+    desempenhoRequisicaoAtual = requisicao;
+
+    if (!matricula) {
+        desempenhoRegistrosPlanilha = null;
+        desempenhoPlanilhaMatricula = "";
+        desempenhoCarregando = false;
+        desempenhoErro = "Entre com sua matrícula para carregar seu desempenho do banco de dados.";
+        atualizarDesempenho();
+        return;
+    }
+
+    if (desempenhoPlanilhaMatricula !== matricula) {
+        desempenhoRegistrosPlanilha = null;
+        desempenhoPlanilhaMatricula = "";
+    }
+
+    desempenhoCarregando = true;
+    desempenhoErro = "";
+    atualizarDesempenho();
+
+    const controleConsulta = new AbortController();
+    const timeoutConsulta = setTimeout(() => controleConsulta.abort(), 8000);
+
+    try {
+        const resposta = await fetch(`${SCRIPT_URL}?acao=desempenhoColaborador&matricula=${encodeURIComponent(matricula)}`, {
+            signal: controleConsulta.signal
+        });
+
+        if (!resposta.ok) {
+            throw new Error("Erro ao consultar desempenho do colaborador.");
+        }
+
+        const dados = await resposta.json();
+
+        if (!dados.sucesso || !Array.isArray(dados.registros)) {
+            throw new Error(dados.erro || "Erro ao carregar desempenho do colaborador.");
+        }
+
+        if (requisicao !== desempenhoRequisicaoAtual || matricula !== obterMatriculaDesempenho()) {
+            return;
+        }
+
+        desempenhoRegistrosPlanilha = dados.registros;
+        desempenhoPlanilhaMatricula = matricula;
+        desempenhoErro = "";
+    } catch (erro) {
+        if (requisicao === desempenhoRequisicaoAtual) {
+            desempenhoRegistrosPlanilha = null;
+            desempenhoPlanilhaMatricula = "";
+            desempenhoErro = erro.name === "AbortError"
+                ? "A consulta ao banco demorou mais que o esperado. Tente abrir Meu Desempenho novamente."
+                : "Não foi possível carregar o desempenho do banco de dados. Publique a versão atualizada do Apps Script e tente novamente.";
+            console.error(erro);
+        }
+    } finally {
+        if (requisicao === desempenhoRequisicaoAtual) {
+            desempenhoCarregando = false;
+            atualizarDesempenho();
+        }
+
+        clearTimeout(timeoutConsulta);
+    }
+}
+
+function consolidarDesempenho(registros) {
+    const atividades = new Map();
+    const dias = new Map();
+    const tfms = new Set();
+    let totalHoras = 0;
+
+    registros.forEach((registro) => {
+        const atividade = String(registro.atividade || "Atividade sem nome").trim() || "Atividade sem nome";
+        const horas = converterHorasNumero(registro.horas);
+        const data = obterDataRegistroDesempenho(registro);
+
+        if (registro.tfm) {
+            tfms.add(String(registro.tfm));
+        }
+
+        if (horas <= 0) {
+            return;
+        }
+
+        totalHoras += horas;
+        const acumulado = atividades.get(atividade) || { atividade, horas: 0, registros: 0 };
+        acumulado.horas += horas;
+        acumulado.registros += 1;
+        atividades.set(atividade, acumulado);
+
+        if (data) {
+            const dia = dias.get(data) || { data, horas: 0, registros: 0 };
+            dia.horas += horas;
+            dia.registros += 1;
+            dias.set(data, dia);
+        }
+    });
+
+    const ranking = [...atividades.values()].sort((primeira, segunda) => segunda.horas - primeira.horas || segunda.registros - primeira.registros);
+    const timeline = [...dias.values()].sort((primeiro, segundo) => primeiro.data.localeCompare(segundo.data));
+    const diasApontados = timeline.length;
+
+    return {
+        totalHoras,
+        totalAtividades: registros.length,
+        totalTfms: tfms.size,
+        diasApontados,
+        mediaDia: diasApontados ? totalHoras / diasApontados : 0,
+        mediaAtividade: registros.length ? totalHoras / registros.length : 0,
+        timeline,
+        ranking
+    };
+}
+
+function criarLinhaDesempenho(item, maiorHoras) {
+    const linha = document.createElement("div");
+    const topo = document.createElement("div");
+    const nome = document.createElement("span");
+    const horas = document.createElement("strong");
+    const trilho = document.createElement("div");
+    const barra = document.createElement("span");
+    const detalhe = document.createElement("small");
+    const largura = maiorHoras ? Math.max(8, (item.horas / maiorHoras) * 100) : 0;
+
+    linha.className = "desempenho-barra-item";
+    topo.className = "desempenho-barra-topo";
+    trilho.className = "desempenho-barra-trilho";
+    barra.className = "desempenho-barra-preenchimento";
+
+    nome.textContent = item.atividade;
+    horas.textContent = formatarHoras(item.horas);
+    detalhe.textContent = `${item.registros} registro(s)`;
+    barra.style.setProperty("--largura", `${largura}%`);
+
+    topo.appendChild(nome);
+    topo.appendChild(horas);
+    trilho.appendChild(barra);
+    linha.appendChild(topo);
+    linha.appendChild(trilho);
+    linha.appendChild(detalhe);
+
+    return linha;
+}
+
+function renderizarCalendarioDesempenho(timeline) {
+    if (!desempenhoCalendario) {
+        return;
+    }
+
+    desempenhoCalendario.innerHTML = "";
+    const maiorHoras = Math.max(...timeline.map((item) => item.horas), 0);
+
+    if (!timeline.length) {
+        const vazio = document.createElement("p");
+        vazio.className = "desempenho-mini-vazio";
+        vazio.textContent = "Sem datas para exibir no calendário.";
+        desempenhoCalendario.appendChild(vazio);
+        return;
+    }
+
+    timeline.slice(-35).forEach((item) => {
+        const dia = document.createElement("div");
+        const intensidade = maiorHoras ? item.horas / maiorHoras : 0;
+        const opacidade = 0.08 + (intensidade * 0.34);
+
+        dia.className = "desempenho-calendario-dia";
+        dia.style.setProperty("--intensidade", intensidade.toFixed(2));
+        dia.style.setProperty("--opacidade", opacidade.toFixed(2));
+        dia.style.setProperty("--opacidade-suave", (opacidade * 0.72).toFixed(2));
+        dia.innerHTML = `<span>${formatarData(item.data).slice(0, 5)}</span><strong>${formatarHoras(item.horas)}</strong>`;
+        desempenhoCalendario.appendChild(dia);
+    });
+}
+
+function atualizarDesempenho() {
+    if (!desempenhoRanking) {
+        return;
+    }
+
+    const registrosBanco = obterRegistrosDesempenho();
+    const registrosFiltrados = filtrarRegistrosDesempenho(registrosBanco);
+    const desempenho = consolidarDesempenho(registrosFiltrados);
+    atualizarInfoPeriodoDesempenho(registrosBanco.length, registrosFiltrados.length);
+
+    desempenhoTotalHoras.textContent = formatarHoras(desempenho.totalHoras);
+    desempenhoTotalAtividades.textContent = desempenho.totalAtividades.toLocaleString("pt-BR");
+    desempenhoTotalTfms.textContent = desempenho.totalTfms.toLocaleString("pt-BR");
+    desempenhoDiasApontados.textContent = desempenho.diasApontados.toLocaleString("pt-BR");
+    desempenhoMediaDia.textContent = formatarHoras(desempenho.mediaDia);
+    desempenhoMediaAtividade.textContent = formatarHoras(desempenho.mediaAtividade);
+    desempenhoRanking.innerHTML = "";
+    desempenhoVazio.textContent = desempenhoCarregando
+        ? "Carregando todos os seus dados do banco de dados..."
+        : desempenhoErro || "Nenhum registro encontrado no banco de dados para sua matrícula.";
+    desempenhoVazio.hidden = desempenho.ranking.length > 0 && !desempenhoCarregando && !desempenhoErro;
+
+    const maiorHoras = desempenho.ranking[0]?.horas || 0;
+    desempenho.ranking.slice(0, 6).forEach((item) => {
+        desempenhoRanking.appendChild(criarLinhaDesempenho(item, maiorHoras));
+    });
+    renderizarCalendarioDesempenho(desempenho.timeline);
+}
+
+function criarColunaOficinaGeral(item, maiorHoras) {
+    const coluna = document.createElement("article");
+    const topo = document.createElement("div");
+    const barraArea = document.createElement("div");
+    const barra = document.createElement("span");
+    const rodape = document.createElement("div");
+    const altura = maiorHoras ? Math.max(10, (item.horas / maiorHoras) * 100) : 0;
+
+    coluna.className = "oficina-coluna";
+    topo.className = "oficina-coluna-topo";
+    barraArea.className = "oficina-coluna-area";
+    barra.className = "oficina-coluna-barra";
+    rodape.className = "oficina-coluna-rodape";
+
+    barra.style.setProperty("--altura", `${altura}%`);
+    topo.innerHTML = `<strong>${formatarHoras(item.horas)}</strong><span>${Number(item.tfms || 0).toLocaleString("pt-BR")} TFM(s)</span>`;
+    rodape.textContent = item.atividade || "Atividade sem nome";
+
+    barraArea.appendChild(barra);
+    coluna.appendChild(topo);
+    coluna.appendChild(barraArea);
+    coluna.appendChild(rodape);
+    return coluna;
+}
+
+function renderizarGeralOficina(atividades) {
+    if (!oficinaGeralGrafico || !oficinaGeralStatus) {
+        return;
+    }
+
+    oficinaGeralGrafico.innerHTML = "";
+    const itens = Array.isArray(atividades) ? atividades : [];
+
+    if (!itens.length) {
+        oficinaGeralStatus.hidden = false;
+        oficinaGeralStatus.textContent = "Nenhum dado geral encontrado no banco de dados.";
+        return;
+    }
+
+    oficinaGeralStatus.hidden = true;
+    const maiorHoras = Math.max(...itens.map((item) => Number(item.horas || 0)), 0);
+    itens.forEach((item) => oficinaGeralGrafico.appendChild(criarColunaOficinaGeral(item, maiorHoras)));
+}
+
+async function carregarGeralOficina(forcarAtualizacao = false) {
+    if (!oficinaGeralGrafico || !oficinaGeralStatus) {
+        return;
+    }
+
+    if (oficinaGeralCarregada && !forcarAtualizacao) {
+        return;
+    }
+
+    const requisicao = oficinaGeralRequisicaoAtual + 1;
+    oficinaGeralRequisicaoAtual = requisicao;
+    oficinaGeralStatus.hidden = false;
+    oficinaGeralStatus.textContent = "Carregando dados gerais da oficina...";
+    oficinaGeralGrafico.innerHTML = "";
+
+    const controleConsulta = new AbortController();
+    const timeoutConsulta = setTimeout(() => controleConsulta.abort(), 10000);
+
+    try {
+        const resposta = await fetch(`${SCRIPT_URL}?acao=geralOficina`, {
+            signal: controleConsulta.signal
+        });
+
+        if (!resposta.ok) {
+            throw new Error("Erro ao consultar dados gerais da oficina.");
+        }
+
+        const dados = await resposta.json();
+
+        if (!dados.sucesso || !Array.isArray(dados.atividades)) {
+            throw new Error(dados.erro || "Erro ao carregar dados gerais da oficina.");
+        }
+
+        if (requisicao !== oficinaGeralRequisicaoAtual) {
+            return;
+        }
+
+        oficinaGeralCarregada = true;
+        renderizarGeralOficina(dados.atividades);
+    } catch (erro) {
+        if (requisicao === oficinaGeralRequisicaoAtual) {
+            oficinaGeralCarregada = false;
+            oficinaGeralStatus.hidden = false;
+            oficinaGeralStatus.textContent = erro.name === "AbortError"
+                ? "A consulta geral da oficina demorou mais que o esperado. Tente abrir a aba novamente."
+                : "Não foi possível carregar o geral da oficina. Publique a versão atualizada do Apps Script e tente novamente.";
+            console.error(erro);
+        }
+    } finally {
+        clearTimeout(timeoutConsulta);
+    }
+}
+
 function obterPeriodoRegistros(dados, registros) {
     const datas = [dados.dataInicioTfm, dados.dataFimTfm, dados.data, ...registros.map((registro) => registro.data)]
         .map(normalizarDataInput)
@@ -1394,7 +1974,7 @@ function criarComprovanteApontamento(dados) {
     comprovante.innerHTML = `
         <div class="comprovante-cabecalho">
             <div>
-                <span>Comprovante de apontamento</span>
+                <span>Comprovante de registro</span>
                 <strong>TFM ${formatarValor(dados.tfm)}</strong>
             </div>
         </div>
@@ -1625,7 +2205,7 @@ function criarResultadoTfm(dados) {
             link.href = url;
             link.target = "_blank";
             link.rel = "noopener noreferrer";
-            link.innerHTML = `<i class="bi bi-box-arrow-up-right"></i> ${linksDocumento.length > 1 ? `Documento ${index + 1}` : "Abrir documento"}`;
+            link.innerHTML = `<i class="bi bi-box-arrow-up-right"></i> ${linksDocumento.length > 1 ? `Anexo ${index + 1}` : "Abrir anexos"}`;
             linksContainer.appendChild(link);
         });
 
@@ -1714,6 +2294,7 @@ async function buscarDocumentoTfm() {
 
     try {
         alterarEstadoBuscando(true);
+        mostrarCarregamentoBusca(tfms.length);
         const resultados = await consultarListaTfms(tfms);
 
         if (!resultados[0].encontrado) {
@@ -1728,6 +2309,7 @@ async function buscarDocumentoTfm() {
         mostrarResultadoBusca(mensagem, "erro");
         console.error(erro);
     } finally {
+        pararAnimacaoConsulta();
         alterarEstadoBuscando(false);
     }
 }
@@ -1910,6 +2492,13 @@ function validarFormulario() {
     const dataFimInput = document.getElementById("data-fim-tfm");
     let valido = form.checkValidity();
 
+    for (const atividadeInput of document.querySelectorAll(".detalhes-item .atividade-input")) {
+        if (!validarAtividadeCadastrada(atividadeInput)) {
+            mostrarAvisoAtividadeNaoCadastrada(atividadeInput.value);
+            return false;
+        }
+    }
+
     marcarCampo(tfmInput, !/^[0-9]{6}$/.test(tfmInput.value.trim()), "O TFM precisa ter exatamente 6 números.");
     marcarCampo(dataInicioInput, !dataInicioInput.value, "Informe a data inicial do TFM.");
     marcarCampo(dataFimInput, !dataFimInput.value || dataFimInput.value < dataInicioInput.value, "Informe uma data final igual ou posterior ao início.");
@@ -1941,6 +2530,13 @@ function validarFormulario() {
         valido = false;
         mostrarFeedback("Informe um período válido para o TFM.", "erro");
         (dataFimInput.value < dataInicioInput.value ? dataFimInput : dataInicioInput).focus();
+        return false;
+    }
+
+    if (criarDatasUteisPeriodo(dataInicioInput.value, dataFimInput.value).length === 0) {
+        valido = false;
+        mostrarFeedback("O período do TFM precisa ter pelo menos um dia de segunda a sábado.", "erro");
+        dataInicioInput.focus();
         return false;
     }
 
@@ -2000,7 +2596,6 @@ async function salvarApontamentoConfirmado() {
 
     try {
         iniciarAnimacaoSalvamento();
-        btnConfirmarSalvamento.disabled = true;
 
         atualizarEtapaSalvamento("Coletando dados para envio...");
         const resposta = await fetch(SCRIPT_URL, {
@@ -2019,7 +2614,7 @@ async function salvarApontamentoConfirmado() {
         const resultado = await resposta.json();
 
         if (!resultado.sucesso) {
-            throw new Error(resultado.erro || "Erro ao salvar apontamento.");
+            throw new Error(resultado.erro || "Erro ao salvar registro.");
         }
 
         cacheConsultaTfms.delete(dados.tfm);
@@ -2037,6 +2632,7 @@ async function salvarApontamentoConfirmado() {
 
         resumoPlanilhaCarregado = false;
         await carregarResumoPlanilha();
+        await carregarDesempenhoColaborador();
 
         pararAnimacaoSalvamento();
         fecharModalRevisao();
@@ -2068,12 +2664,12 @@ async function salvarApontamentoConfirmado() {
         await carregarHistoricoPlanilha();
     } catch (erro) {
         pararAnimacaoSalvamento();
-        mostrarFeedback(erro.message || "Erro ao salvar!", "erro");
+        mostrarErroSalvamento(erro.message || "Erro ao salvar!");
         console.error(erro);
     } finally {
         pararAnimacaoSalvamento();
         alterarEstadoSalvando(false);
-        btnConfirmarSalvamento.disabled = false;
+        alterarEstadoConfirmacaoSalvamento(false);
         atualizarResumo();
     }
 }
@@ -2084,6 +2680,64 @@ configurarAutocomplete(modalColaboradorNomeInput, colaboradoresDisponiveis, atua
 document.querySelectorAll(".colaborador-input").forEach((input) => configurarAutocomplete(input, colaboradoresDisponiveis, atualizarMatriculaPorNome, atualizarMatriculaPorNome));
 configurarAutocomplete(loginNomeInput, colaboradoresDisponiveis, atualizarMatriculaLoginPorNome, atualizarMatriculaLoginPorNome);
 document.querySelectorAll(".documento-input").forEach(configurarDocumento);
+
+function alternarAppTab(aba) {
+    document.querySelectorAll(".app-nav-btn").forEach((item) => {
+        item.classList.toggle("app-nav-btn-ativo", item.dataset.appTab === aba);
+    });
+
+    document.querySelectorAll(".app-tab-panel").forEach((painel) => {
+        const ativo = painel.dataset.appPanel === aba;
+        painel.hidden = !ativo;
+        painel.classList.toggle("app-tab-panel-ativo", ativo);
+    });
+
+    if (aba === "desempenho") {
+        carregarDesempenhoColaborador();
+    }
+
+    if (aba === "geral-oficina") {
+        carregarGeralOficina();
+    }
+}
+
+function aplicarAtalhoPeriodoDesempenho(periodo) {
+    if (!desempenhoPeriodoInicio || !desempenhoPeriodoFim) {
+        return;
+    }
+
+    if (periodo === "todos") {
+        desempenhoPeriodoInicio.value = "";
+        desempenhoPeriodoFim.value = "";
+        atualizarDesempenho();
+        return;
+    }
+
+    const dias = Number(periodo);
+    const extremos = obterDatasExtremasDesempenho(obterRegistrosDesempenho());
+    const dataFim = extremos.fim || new Date().toISOString().slice(0, 10);
+    const dataInicio = criarDataLocal(dataFim);
+    dataInicio.setDate(dataInicio.getDate() - Math.max(dias - 1, 0));
+
+    desempenhoPeriodoInicio.value = dataInicio.toISOString().slice(0, 10);
+    desempenhoPeriodoFim.value = dataFim;
+    atualizarDesempenho();
+}
+
+document.querySelectorAll(".app-nav-btn[data-app-tab]").forEach((botao) => {
+    botao.addEventListener("click", () => {
+        alternarAppTab(botao.dataset.appTab);
+    });
+});
+
+[desempenhoPeriodoInicio, desempenhoPeriodoFim].forEach((input) => {
+    input?.addEventListener("input", atualizarDesempenho);
+    input?.addEventListener("change", atualizarDesempenho);
+});
+
+document.querySelectorAll("[data-desempenho-periodo]").forEach((botao) => {
+    botao.addEventListener("click", () => aplicarAtalhoPeriodoDesempenho(botao.dataset.desempenhoPeriodo));
+});
 
 document.addEventListener("mousedown", (event) => {
     if (!event.target.closest(".autocomplete-wrapper")) {
@@ -2112,10 +2766,23 @@ detalhesContainer.addEventListener("click", (event) => {
     renumerarAtividades();
 });
 
+detalhesContainer.addEventListener("input", (event) => {
+    if (!event.target.matches(".horas-input")) {
+        return;
+    }
+
+    aplicarSeparadorDecimalPonto(event.target);
+    atualizarSaldoDiario();
+});
+
+modalHorasInput.addEventListener("input", () => {
+    aplicarSeparadorDecimalPonto(modalHorasInput);
+});
+
 btnBuscar.addEventListener("click", buscarDocumentoTfm);
 resultadoBuscaBackdrop.addEventListener("click", limparResultadoBusca);
-btnAbrirSugestao.addEventListener("click", abrirModalSugestao);
-btnAbrirFeedback.addEventListener("click", abrirModalFeedback);
+btnAbrirSugestao?.addEventListener("click", abrirModalSugestao);
+btnAbrirFeedback?.addEventListener("click", abrirModalFeedback);
 btnSugerirAtividade.addEventListener("click", enviarSugestaoAtividade);
 btnEnviarFeedback.addEventListener("click", enviarFeedbackColaborador);
 btnConfirmarAtividade.addEventListener("click", adicionarAtividadeDoModal);
@@ -2203,6 +2870,12 @@ document.querySelectorAll("[data-fechar-revisao]").forEach((elemento) => {
 });
 
 botoesHelp.forEach((botao) => botao.addEventListener("click", abrirModalHelp));
+botoesHelpSugestao.forEach((botao) => {
+    botao.addEventListener("click", () => {
+        fecharModalHelp();
+        abrirModalSugestao();
+    });
+});
 botoesHelpFeedback.forEach((botao) => {
     botao.addEventListener("click", () => {
         fecharModalHelp();
@@ -2278,11 +2951,11 @@ document.addEventListener("keydown", (event) => {
         fecharModalHelp();
     }
 
-    if (event.key === "Escape" && !modalSugestao.hidden) {
+    if (event.key === "Escape" && modalSugestao && !modalSugestao.hidden) {
         fecharModalSugestao();
     }
 
-    if (event.key === "Escape" && !modalFeedback.hidden) {
+    if (event.key === "Escape" && modalFeedback && !modalFeedback.hidden) {
         fecharModalFeedback();
     }
 
@@ -2342,7 +3015,7 @@ form.addEventListener("submit", async (event) => {
     try {
         abrirModalRevisao(await prepararDadosApontamento());
     } catch (erro) {
-        mostrarFeedback(erro.message || "Erro ao preparar revisão do apontamento.", "erro");
+        mostrarFeedback(erro.message || "Erro ao preparar revisão do registro.", "erro");
         console.error(erro);
     }
 });

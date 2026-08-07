@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Desempenho | Stellantis</title>
+    <meta name="description" content="Indicadores individuais da Oficina Motores por atividade, horas e TFMs.">
+    <meta name="theme-color" content="#001E62">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+    <link rel="manifest" href="site.webmanifest">
+    <link rel="stylesheet" href="geral-oficina.css">
+    <link rel="stylesheet" href="meu-desempenho.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+
+<body>
+    <header class="oficina-header">
+        <div class="oficina-marca">
+            <img src="logo.png" class="logo" alt="Stellantis">
+            <div class="oficina-titulo">
+                <span>Oficina</span>
+                <strong>Motores</strong>
+            </div>
+        </div>
+
+        <div class="oficina-header-acoes">
+            <div id="usuario-desempenho" class="usuario-geral" hidden>
+                <i class="bi bi-person-check"></i>
+                <span id="usuario-desempenho-nome">-</span>
+            </div>
+            <a class="voltar-site" href="index.html">
+                <i class="bi bi-arrow-left"></i>
+                <span>Voltar</span>
+            </a>
+        </div>
+    </header>
+
+    <main class="oficina-app desempenho-app">
+        <section class="oficina-hero desempenho-hero" aria-labelledby="meu-desempenho-titulo">
+            <div>
+                <span>Indicadores individuais</span>
+                <h1 id="meu-desempenho-titulo">Meu Desempenho</h1>
+                <p>Resumo do banco de dados por matrícula, atividades, horas trabalhadas e quantidade de TFMs.</p>
+            </div>
+
+            <div class="oficina-hero-acoes">
+                <div class="oficina-modo-abas" aria-label="Indicador dos gráficos de desempenho">
+                    <button type="button" class="oficina-modo-ativo" data-modo-desempenho="horas">Horas</button>
+                    <button type="button" data-modo-desempenho="tfms">TFM</button>
+                </div>
+
+                <button type="button" id="btn-atualizar-desempenho" class="btn-atualizar-geral">
+                    <i class="bi bi-arrow-clockwise"></i>
+                    <span>Atualizar dados</span>
+                </button>
+            </div>
+        </section>
+
+        <section class="desempenho-identidade" aria-label="Colaborador consultado">
+            <div>
+                <span>Colaborador</span>
+                <strong id="desempenho-colaborador-nome">-</strong>
+            </div>
+            <div>
+                <span>Matrícula</span>
+                <strong id="desempenho-colaborador-matricula">-</strong>
+            </div>
+        </section>
+
+        <section class="desempenho-filtros-pagina" aria-label="Filtro de período do desempenho">
+            <div class="desempenho-filtros-cabecalho">
+                <span>Período de análise</span>
+                <strong>Selecione as datas para atualizar calendário e indicadores</strong>
+            </div>
+
+            <div class="desempenho-filtros-campos">
+                <label>
+                    <span>Data inicial</span>
+                    <input id="desempenho-periodo-inicio" type="date">
+                </label>
+                <label>
+                    <span>Data final</span>
+                    <input id="desempenho-periodo-fim" type="date">
+                </label>
+                <div class="desempenho-atalhos-pagina" aria-label="Atalhos de período">
+                    <button type="button" data-desempenho-periodo="30">30 dias</button>
+                    <button type="button" data-desempenho-periodo="90">90 dias</button>
+                    <button type="button" data-desempenho-periodo="todos">Tudo</button>
+                </div>
+            </div>
+        </section>
+
+        <p id="desempenho-periodo-info" class="oficina-status">Carregando seus registros do banco de dados...</p>
+
+        <section class="oficina-resumo desempenho-resumo" aria-label="Resumo do meu desempenho">
+            <article>
+                <span>Horas trabalhadas</span>
+                <strong id="desempenho-total-horas">0h</strong>
+            </article>
+            <article>
+                <span>Atividades salvas</span>
+                <strong id="desempenho-total-atividades">0</strong>
+            </article>
+            <article>
+                <span>TFMs distintos</span>
+                <strong id="desempenho-total-tfms">0</strong>
+            </article>
+            <article>
+                <span>Dias apontados</span>
+                <strong id="desempenho-dias-apontados">0</strong>
+            </article>
+            <article>
+                <span>Média por dia</span>
+                <strong id="desempenho-media-dia">0h</strong>
+            </article>
+            <article>
+                <span>Média por atividade</span>
+                <strong id="desempenho-media-atividade">0h</strong>
+            </article>
+        </section>
+
+        <section id="desempenho-dashboard" class="desempenho-dashboard" hidden>
+            <section class="grafico-card desempenho-calendario-card" aria-labelledby="desempenho-calendario-titulo">
+                <div class="grafico-card-topo desempenho-card-topo">
+                    <div>
+                        <span>Intensidade por data</span>
+                        <h2 id="desempenho-calendario-titulo">Calendário de registros</h2>
+                    </div>
+                    <strong id="desempenho-calendario-total">0 dias</strong>
+                </div>
+
+                <div id="desempenho-calendario" class="desempenho-calendario-grid" aria-label="Calendário de intensidade por data"></div>
+            </section>
+
+            <section class="grafico-card desempenho-ranking-card" aria-labelledby="desempenho-ranking-titulo">
+                <div class="grafico-card-topo">
+                    <div>
+                        <span id="desempenho-ranking-subtitulo">Distribuição por horas</span>
+                        <h2 id="desempenho-ranking-titulo">Atividades por horas</h2>
+                    </div>
+                </div>
+
+                <p id="desempenho-vazio" class="desempenho-vazio">Nenhum registro encontrado no banco de dados para sua matrícula.</p>
+                <div id="desempenho-ranking" class="desempenho-ranking-lista"></div>
+            </section>
+
+            <section class="grafico-card desempenho-tfms-card" aria-labelledby="desempenho-tfms-titulo">
+                <div class="grafico-card-topo desempenho-card-topo">
+                    <div>
+                        <span>TFMs realizados</span>
+                        <h2 id="desempenho-tfms-titulo">Lista por TFM</h2>
+                    </div>
+                    <strong id="desempenho-tfms-total">0 TFM(s)</strong>
+                </div>
+
+                <div id="desempenho-tfms-lista" class="desempenho-tfms-lista" aria-label="Lista de TFMs realizados no período"></div>
+            </section>
+        </section>
+    </main>
+
+    <script src="meu-desempenho.js"></script>
+</body>
+
+</html>
