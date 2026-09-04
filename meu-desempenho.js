@@ -1,7 +1,7 @@
 const LOGIN_CHAVE = "stellantisUsuarioLogado";
 const DESEMPENHO_CACHE_PREFIXO = "stellantisDesempenho:";
 const DESEMPENHO_CACHE_DURACAO = 24 * 60 * 60 * 1000;
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxghyPXviuoKUSM2Yf7cIPTI9XEiomzyQJ1Z-yllIEra-0fehMC9BLx1GAuu1EX5cL9/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbycpTr1Vj5nCByX2gYKvaXnhw7EiBUYqlnRq7ClSoqr2ZNBNvAUqvW2br6ksyAJDcxO/exec";
 
 const usuarioDesempenho = document.getElementById("usuario-desempenho");
 const usuarioDesempenhoNome = document.getElementById("usuario-desempenho-nome");

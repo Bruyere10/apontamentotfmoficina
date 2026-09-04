@@ -31,7 +31,7 @@
         },
         "geral-oficina.html": {
             title: "Como consultar o Geral da Oficina",
-            intro: "Esta página reúne os indicadores da Oficina Transmissões e permite analisar as atividades registradas por toda a equipe.",
+            intro: "Esta página reúne os indicadores da Oficina Motores e permite analisar as atividades registradas por toda a equipe.",
             content: `
                 <div class="site-help-steps">
                     <article class="site-help-step"><span>1</span><div><strong>Leia o resumo geral</strong><p>Os indicadores mostram o total de horas, TFMs, atividades e a atividade com maior volume registrado.</p></div></article>
@@ -45,7 +45,7 @@
         },
         principal: {
             title: "Como usar o Registro de TFM",
-            intro: "Nesta página você registra TFMs finalizados, consulta registros e acessa as demais áreas da Oficina Transmissões.",
+            intro: "Nesta página você registra TFMs finalizados, consulta registros e acessa as demais áreas da Oficina Motores.",
             content: `
                 <div class="site-help-steps">
                     <article class="site-help-step"><span>1</span><div><strong>Acesse o sistema</strong><p>Informe seu nome e matrícula. Caso seu nome não esteja na lista, use a opção de cadastro pendente.</p></div></article>

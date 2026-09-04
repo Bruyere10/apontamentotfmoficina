@@ -1,5 +1,5 @@
 const LOGIN_CHAVE = "stellantisUsuarioLogado";
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxghyPXviuoKUSM2Yf7cIPTI9XEiomzyQJ1Z-yllIEra-0fehMC9BLx1GAuu1EX5cL9/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbycpTr1Vj5nCByX2gYKvaXnhw7EiBUYqlnRq7ClSoqr2ZNBNvAUqvW2br6ksyAJDcxO/exec";
 
 const usuarioGeral = document.getElementById("usuario-geral");
 const usuarioGeralNome = document.getElementById("usuario-geral-nome");
