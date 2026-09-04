@@ -85,5 +85,7 @@ window.ATIVIDADES_DISPONIVEIS = [
     "Diagnose em motor na cela",
     "Substituir tanque de combustível, tubos e coletor de admissão",
     "Diagnose em motor na banca da oficina",
-    "Reparação do motor no CCP"
+    "Reparação do motor no CCP",
+    "Troca de sensores indicom na cela  na PUC",
+    "Instrumentação em veículos Elétricos e Híbridos"
 ].sort((primeira, segunda) => primeira.localeCompare(segunda, "pt-BR"));
