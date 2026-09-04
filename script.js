@@ -3876,7 +3876,7 @@ document.querySelectorAll(".app-nav-btn[data-app-tab]").forEach((botao) => {
 });
 
 document.getElementById("btn-bi-oficina")?.addEventListener("click", () => {
-    avisoBiOficina.hidden = false;
+    window.location.href = "https://app.powerbi.com/links/DjYkARdlpJ?ctid=d852d5cd-724c-4128-8812-ffa5db3f8507&pbi_source=linkShare";
 });
 
 btnFecharAvisoBiOficina?.addEventListener("click", () => {
