@@ -1,11 +1,11 @@
 (() => {
     const helpPages = {
         "registrar-tfm.html": {
-            title: "Como abrir e acompanhar um TFM",
-            intro: "Use este guia ao registrar um trabalho que ainda não foi concluído. O TFM permanece em andamento até o host finalizá-lo; as horas registradas aparecem no desempenho como <strong>Em andamento</strong>.",
+            title: "Como registrar e acompanhar um TFM em andamento",
+            intro: "Use esta área para registrar um TFM que exige acompanhamento e ainda não foi concluído. Ele permanece em andamento até que o host ou um colaborador autorizado o finalize; as horas registradas aparecem no desempenho como <strong>Em andamento</strong>.",
             content: `
         <div class="site-help-steps">
-            <article class="site-help-step"><span>1</span><div><strong>Acesse Registrar TFM</strong><p>Entre com sua matrícula e escolha <em>Registrar TFM</em> no menu. Somente um colaborador será o host, responsável por registrar, acompanhar e finalizar o TFM.</p></div></article>
+            <article class="site-help-step"><span>1</span><div><strong>Acesse Registrar TFM em andamento</strong><p>Entre com sua matrícula e escolha <em>Registrar TFM em andamento</em> no menu. Use essa área quando o trabalho exigir acompanhamento antes de ser finalizado. Somente um colaborador será o host, responsável por registrar, acompanhar e finalizar o TFM.</p></div></article>
             <article class="site-help-step"><span>2</span><div><strong>Informe os dados iniciais</strong><p>Preencha data inicial, turno, número do TFM com 6 dígitos, projeto quando houver, atividade inicial e as horas já trabalhadas. Nome e matrícula são preenchidos pelo acesso e não devem ser alterados.</p></div></article>
             <article class="site-help-step"><span>3</span><div><strong>Registre o TFM</strong><p>Clique em <em>Registrar TFM em andamento</em>. O trabalho ficará na lista de TFMs em andamento e ainda não será enviado ao banco principal nem ao BI.</p></div></article>
             <article class="site-help-step"><span>4</span><div><strong>Registre horas a cada dia</strong><p>Na aba <em>TFMs em andamento</em>, o host abre o TFM e usa <em>Editar calendário</em> para incluir a data, a atividade, as horas e a observação. Inclua colaboradores adicionais somente quando eles também participaram daquele lançamento.</p></div></article>
@@ -45,13 +45,13 @@
         },
         principal: {
             title: "Como usar o Registro de TFM",
-            intro: "Nesta página você registra TFMs finalizados, consulta registros e acessa as demais áreas da Oficina Motores.",
+            intro: "Nesta página você registra TFMs finalizados, consulta registros e acessa a área destinada aos TFMs que permanecem em andamento.",
             content: `
                 <div class="site-help-steps">
                     <article class="site-help-step"><span>1</span><div><strong>Acesse o sistema</strong><p>Informe seu nome e matrícula. Caso seu nome não esteja na lista, use a opção de cadastro pendente.</p></div></article>
-                    <article class="site-help-step"><span>2</span><div><strong>Registre um TFM fechado</strong><p>Preencha as datas, turno, número do TFM, atividades, horas e colaboradores adicionais antes de salvar.</p></div></article>
+                    <article class="site-help-step"><span>2</span><div><strong>Registre um TFM finalizado</strong><p>Use <em>Registrar TFM finalizado</em> quando o trabalho já estiver concluído. Preencha as datas, turno, número do TFM, atividades, horas e colaboradores adicionais antes de salvar.</p></div></article>
                     <article class="site-help-step"><span>3</span><div><strong>Consulte um TFM</strong><p>Abra a aba Consultar TFM para localizar registros e documentos associados.</p></div></article>
-                    <article class="site-help-step"><span>4</span><div><strong>Use Registrar TFM para trabalhos contínuos</strong><p>Essa área é destinada a trabalhos que ainda estão em andamento e serão finalizados pelo host.</p></div></article>
+                    <article class="site-help-step"><span>4</span><div><strong>Use Registrar TFM em andamento para trabalhos contínuos</strong><p>Essa área é destinada a TFMs que exigem acompanhamento e permanecem em andamento. O host ou um colaborador autorizado registra as horas e finaliza o TFM quando todo o trabalho estiver concluído.</p></div></article>
                     <article class="site-help-step"><span>5</span><div><strong>Acompanhe os indicadores</strong><p>Meu Desempenho mostra seus registros individuais, enquanto Geral da Oficina apresenta os dados consolidados da equipe.</p></div></article>
                     <article class="site-help-step"><span>6</span><div><strong>Envie sugestões e feedback</strong><p>Use as opções do menu para sugerir atividades ou informar dúvidas, melhorias e erros do sistema.</p></div></article>
                 </div>
