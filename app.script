@@ -1553,7 +1553,7 @@ function abrirTfmEmAndamento(dados) {
 
     return responderJson({ sucesso: true });
   } catch (erro) {
-    return responderJson({ sucesso: false, erro: erro.message || "Erro ao abrir TFM." });
+    return responderJson({ sucesso: false, erro: erro.message || "Erro ao registrar TFM." });
   }
 }
 
