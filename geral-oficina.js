@@ -20,6 +20,7 @@ const modoGraficoBotoes = document.querySelectorAll("[data-modo-grafico]");
 const periodoInicio = document.getElementById("periodo-inicio");
 const periodoFim = document.getElementById("periodo-fim");
 const btnPeriodoTudo = document.getElementById("btn-periodo-tudo");
+const geralPeriodoSelecionado = document.getElementById("geral-periodo-selecionado");
 const periodoInfo = document.getElementById("periodo-info");
 const calendarioPlanilha = document.getElementById("calendario-planilha");
 const geralMes = document.getElementById("geral-mes");
@@ -175,12 +176,7 @@ function aplicarMesCalendario(valorMes) {
         return;
     }
 
-    const [ano, mes] = valorMes.split("-").map(Number);
-    const inicio = formatarDataIso(new Date(ano, mes - 1, 1));
-    const fim = formatarDataIso(new Date(ano, mes, 0));
-    periodoInicio.value = inicio;
-    periodoFim.value = fim;
-    atualizarDashboardPorPeriodo();
+    renderizarCalendario();
 }
 
 function alterarMesCalendario(deslocamento) {
@@ -325,7 +321,7 @@ function renderizarVisaoGeral(atividades) {
     const ancora = periodoFim.value || periodoCompleto.fim || formatarDataIso(new Date());
     const datasSemana = obterDatasSemana(ancora);
     const registrosPorDia = new Map();
-    registrosGerais.forEach((registro) => {
+    registrosExibidosGerais.forEach((registro) => {
         const dia = registrosPorDia.get(registro.data) || { horas: 0, tfms: new Set() };
         dia.horas += registro.horas;
         if (registro.tfm) {
@@ -495,6 +491,7 @@ function atualizarInfoPeriodo(totalRegistros, totalFiltrado) {
     const inicioSelecionado = periodoInicio.value || periodoCompleto.inicio;
     const fimSelecionado = periodoFim.value || periodoCompleto.fim;
     periodoInfo.textContent = `${totalFiltrado} de ${totalRegistros} registro(s), de ${formatarData(inicioSelecionado)} a ${formatarData(fimSelecionado)}.`;
+    geralPeriodoSelecionado.textContent = `${formatarData(inicioSelecionado)} a ${formatarData(fimSelecionado)}`;
 }
 
 function renderizarCalendario() {

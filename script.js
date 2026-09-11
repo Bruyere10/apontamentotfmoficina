@@ -129,6 +129,8 @@ const textoLimiteHoras = document.getElementById("modal-limite-horas-texto");
 const modalAlertasDisponibilidade = document.getElementById("modal-alertas-disponibilidade");
 const textoAlertasDisponibilidade = document.getElementById("modal-alertas-disponibilidade-texto");
 const btnFecharAlertasDisponibilidade = document.getElementById("btn-fechar-alertas-disponibilidade");
+const modalTfmEmAndamento = document.getElementById("modal-tfm-em-andamento");
+const textoTfmEmAndamento = document.getElementById("modal-tfm-em-andamento-texto");
 const notificacoesDisponibilidade = document.getElementById("notificacoes-disponibilidade");
 const btnNotificacoesDisponibilidade = document.getElementById("btn-notificacoes-disponibilidade");
 const contadorNotificacoesDisponibilidade = document.getElementById("notificacoes-disponibilidade-contador");
@@ -1233,8 +1235,39 @@ function fecharAlertasDisponibilidade() {
     document.body.classList.remove("modal-limite-horas-aberto");
 }
 
+function fecharAvisoTfmEmAndamento() {
+    modalTfmEmAndamento.hidden = true;
+    document.body.classList.remove("modal-limite-horas-aberto");
+}
+
+function abrirAvisoTfmEmAndamento(tfm) {
+    textoTfmEmAndamento.textContent = `O TFM ${tfm} está registrado como em andamento. Para fechá-lo, acesse a área “TFM aberto”, vá em “TFMs em andamento” e finalize-o por lá.`;
+    modalTfmEmAndamento.hidden = false;
+    document.body.classList.add("modal-limite-horas-aberto");
+    modalTfmEmAndamento.querySelector("[data-fechar-tfm-em-andamento]").focus();
+}
+
+async function tfmEstaEmAndamento(tfm) {
+    const parametros = new URLSearchParams({
+        acao: "listarTfmsAbertos",
+        matricula: String(usuarioAtual?.matricula || ""),
+        _: Date.now().toString()
+    });
+    const resposta = await fetch(`${SCRIPT_URL}?${parametros}`);
+    const dados = await resposta.json();
+
+    if (!resposta.ok || !dados.sucesso) {
+        throw new Error(dados.erro || "Não foi possível verificar os TFMs em andamento.");
+    }
+
+    return (dados.tfms || []).some((item) => String(item.tfm || "").trim() === tfm);
+}
+
 modalAlertasDisponibilidade.querySelectorAll("[data-fechar-alertas-disponibilidade]").forEach((elemento) => {
     elemento.addEventListener("click", fecharAlertasDisponibilidade);
+});
+modalTfmEmAndamento.querySelectorAll("[data-fechar-tfm-em-andamento]").forEach((elemento) => {
+    elemento.addEventListener("click", fecharAvisoTfmEmAndamento);
 });
 btnNotificacoesDisponibilidade.addEventListener("click", alternarPainelNotificacoes);
 btnAtualizarNotificacoes.addEventListener("click", () => {
@@ -3704,6 +3737,15 @@ async function salvarApontamentoConfirmado() {
 
     try {
         if (!linhaEditando) {
+            alterarEstadoConfirmacaoSalvamento(true, "Verificando TFM...");
+            const tfmEmAndamento = await tfmEstaEmAndamento(String(dados.tfm || "").trim());
+            alterarEstadoConfirmacaoSalvamento(false);
+            if (tfmEmAndamento) {
+                fecharModalRevisao();
+                abrirAvisoTfmEmAndamento(dados.tfm);
+                return;
+            }
+
             alterarEstadoConfirmacaoSalvamento(true, "Verificando horas...");
             const continuar = await confirmarLimiteDiario(criarLancamentosVerificacaoApontamento(dados));
             alterarEstadoConfirmacaoSalvamento(false);
@@ -4184,6 +4226,10 @@ document.addEventListener("keydown", (event) => {
 
     if (event.key === "Escape" && !modalRevisao.hidden) {
         fecharModalRevisao();
+    }
+
+    if (event.key === "Escape" && !modalTfmEmAndamento.hidden) {
+        fecharAvisoTfmEmAndamento();
     }
 });
 

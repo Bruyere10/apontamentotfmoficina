@@ -349,6 +349,36 @@ body{
     grid-template-columns:repeat(5, minmax(0, 1fr));
 }
 
+.geral-filtro-periodo{
+    align-items:end;
+    background:rgba(255,255,255,0.96);
+    border:1px solid var(--linha);
+    border-left:4px solid var(--azul-claro);
+    border-radius:8px;
+    box-shadow:0 12px 28px rgba(15,23,42,0.07);
+    display:flex;
+    gap:18px;
+    justify-content:space-between;
+    padding:12px 14px;
+}
+
+.geral-filtro-periodo > div:first-child{
+    display:grid;
+    gap:4px;
+}
+
+.geral-filtro-periodo > div:first-child span{
+    color:var(--muted);
+    font-size:10px;
+    font-weight:900;
+    text-transform:uppercase;
+}
+
+.geral-filtro-periodo > div:first-child strong{
+    color:var(--azul);
+    font-size:15px;
+}
+
 .oficina-resumo article,
 .grafico-card{
     background:rgba(255,255,255,0.96);
@@ -1099,6 +1129,11 @@ body{
 
     .oficina-resumo{
         grid-template-columns:repeat(2, minmax(0, 1fr));
+    }
+
+    .geral-filtro-periodo{
+        align-items:stretch;
+        flex-direction:column;
     }
 
     .calendario-topo{

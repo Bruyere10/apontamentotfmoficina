@@ -1320,8 +1320,29 @@
         </section>
     </div>
 
+    <div id="modal-tfm-em-andamento" class="modal-tfm modal-limite-horas" hidden>
+        <div class="modal-tfm-backdrop" data-fechar-tfm-em-andamento></div>
+        <section class="modal-tfm-painel modal-limite-horas-painel" role="alertdialog" aria-modal="true" aria-labelledby="modal-tfm-em-andamento-titulo" aria-describedby="modal-tfm-em-andamento-texto">
+            <button type="button" class="modal-limite-horas-fechar" aria-label="Fechar aviso" data-fechar-tfm-em-andamento>
+                <i class="bi bi-x-lg"></i>
+            </button>
+            <div class="modal-limite-horas-conteudo">
+                <div class="modal-limite-horas-icone"><i class="bi bi-hourglass-split"></i></div>
+                <span>TFM em andamento</span>
+                <h2 id="modal-tfm-em-andamento-titulo">Este TFM ainda não pode ser fechado</h2>
+                <p id="modal-tfm-em-andamento-texto"></p>
+            </div>
+            <div class="modal-limite-horas-acoes">
+                <button type="button" class="modal-limite-horas-continuar" data-fechar-tfm-em-andamento>
+                    <i class="bi bi-check2"></i>
+                    <span>Entendi</span>
+                </button>
+            </div>
+        </section>
+    </div>
+
     <script src="atividades.js?v=20260903-2"></script>
-    <script src="script.js?v=20260903-10"></script>
+    <script src="script.js?v=20260903-11"></script>
     <script src="site-help.js"></script>
 </body>
 

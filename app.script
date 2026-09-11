@@ -127,6 +127,8 @@ function doPost(evento) {
       validarResponsavelEdicao(planilha, dados);
     }
 
+    validarTfmNaoEstaEmAndamento(dados);
+
     const documentos = enviarDocumentosPorEmail(dados);
     const nomesDocumentos = documentos.map((documento) => documento.nome).join(" | ");
     const linksDocumentos = [...new Set(documentos.map((documento) => documento.url).filter(Boolean))].join(" | ");
@@ -324,6 +326,19 @@ function validarResponsavelEdicao(planilha, dados) {
 
   if (!matriculaEditor || matriculaEditor !== matriculaHost || tfmOriginal !== tfmEnviado) {
     throw new Error("Entre na conta do responsavel por este TFM para edita-lo.");
+  }
+}
+
+function validarTfmNaoEstaEmAndamento(dados) {
+  const tfm = String(dados.tfm || "").trim();
+
+  if (dados.linhaEditando || !/^\d{6}$/.test(tfm)) {
+    return;
+  }
+
+  const abaTfmsAbertos = obterAbaTfmsAbertos();
+  if (localizarLinhasTfmAberto(abaTfmsAbertos, tfm, "EM ANDAMENTO").length) {
+    throw new Error("Este TFM está em andamento. Finalize-o na área de TFMs em andamento antes de registrá-lo como fechado.");
   }
 }
 
