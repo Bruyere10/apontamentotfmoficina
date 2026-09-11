@@ -87,7 +87,9 @@ const atividadesDisponiveisLegado = [
     "Diagnose em motor na banca da oficina",
     "Reparação do motor no CCP",
     "Troca de sensores indicom na cela  na PUC",
-    "Instrumentação em veículos Elétricos e Híbridos"
+    "Instrumentação em veículos Elétricos e Híbridos",
+    "Demolição de motor benchmarking",
+    "Demolição de transmissão benchmarking"
 ].sort((primeira, segunda) => primeira.localeCompare(segunda, "pt-BR"));
 const atividadesDisponiveis = Array.isArray(window.ATIVIDADES_DISPONIVEIS)
     ? window.ATIVIDADES_DISPONIVEIS
