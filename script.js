@@ -78,7 +78,7 @@ const atividadesDisponiveisLegado = [
     "Desmontagem de motor e preparação de componentes para controle dimensional realizado pela metrologia.",
     "Descarte de peças.",
     "Troca Óleo Motor.",
-    "Teste de funcionamento dos injetores vazão e pressão",
+    "Teste de funcionamento dos injetores vazão e pressão e substituir",
     "Retirada de bateria H.V",
     "Trocar motor de partida DIESEL e 4x4",
     "Troca chicote almoxarifado",
@@ -89,7 +89,9 @@ const atividadesDisponiveisLegado = [
     "Troca de sensores indicom na cela  na PUC",
     "Instrumentação em veículos Elétricos e Híbridos",
     "Demolição de motor benchmarking",
-    "Demolição de transmissão benchmarking"
+    "Demolição de transmissão benchmarking",
+    "Troca de turbina em motor na cela T3 e T4",
+    "Troca de turbocompressor de motor T3/T4 em cela"
 ].sort((primeira, segunda) => primeira.localeCompare(segunda, "pt-BR"));
 const atividadesDisponiveis = Array.isArray(window.ATIVIDADES_DISPONIVEIS)
     ? window.ATIVIDADES_DISPONIVEIS
