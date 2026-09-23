@@ -91,7 +91,9 @@ const atividadesDisponiveisLegado = [
     "Demolição de motor benchmarking",
     "Demolição de transmissão benchmarking",
     "Troca de turbina em motor na cela T3 e T4",
-    "Troca de turbocompressor de motor T3/T4 em cela"
+    "Troca de turbocompressor de motor T3/T4 em cela",
+    "Diagnose vazamento descarga em veículo Diesel",
+    "Substituir bobina motor T4 Veículo"
 ].sort((primeira, segunda) => primeira.localeCompare(segunda, "pt-BR"));
 const atividadesDisponiveis = Array.isArray(window.ATIVIDADES_DISPONIVEIS)
     ? window.ATIVIDADES_DISPONIVEIS
