@@ -301,7 +301,7 @@ const colaboradores = [
     { matricula: "61604", nome: "Edilson Ribeiro de Andrade" },
     { matricula: "81531", nome: "Fabio Henrique Alves Ventura" },
     { matricula: "61134", nome: "Franklin de Jesus Souza" },
-    { matricula: "70980", nome: "Geraldo Marçal Paiva" },
+    { matricula: "70980", nome: "Geraldo Marçal da Silva" },
     { matricula: "60738", nome: "Gustavo da Silva Amaral" },
     { matricula: "62011", nome: "João Paulo de Rezende Trindade" },
     { matricula: "83661", nome: "José Edson Martins Coelho" },
