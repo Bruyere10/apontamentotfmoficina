@@ -3249,6 +3249,39 @@ function criarResumoConsultaTfms(resultados) {
     return conteudo;
 }
 
+function criarHorasDiariasTfm(registros, periodo) {
+    const horasPorData = new Map();
+
+    registros.forEach((registro) => {
+        const data = normalizarDataInput(registro.data);
+
+        if (data) {
+            horasPorData.set(data, (horasPorData.get(data) || 0) + converterHorasNumero(registro.horas));
+        }
+    });
+
+    const datas = periodo.inicio && periodo.fim
+        ? criarDatasPeriodo(periodo.inicio, periodo.fim)
+        : [...horasPorData.keys()].sort();
+
+    if (!datas.length) {
+        return null;
+    }
+
+    const secao = document.createElement("details");
+    secao.className = "resultado-horas-diarias";
+    secao.innerHTML = `
+        <summary><i class="bi bi-calendar3"></i> Ver horas diárias</summary>
+        <div class="resultado-horas-diarias-lista">
+            ${datas.map((data) => `
+                <div><span>${formatarData(data)}</span><strong>${formatarHoras(horasPorData.get(data) || 0)}</strong></div>
+            `).join("")}
+        </div>
+    `;
+
+    return secao;
+}
+
 function criarResultadoTfm(dados) {
     const conteudo = document.createElement("div");
     conteudo.className = "resultado-tfm";
@@ -3345,6 +3378,12 @@ function criarResultadoTfm(dados) {
 
     conteudo.appendChild(cabecalho);
     conteudo.appendChild(resumo);
+
+    const horasDiarias = criarHorasDiariasTfm(registros, periodo);
+
+    if (horasDiarias) {
+        conteudo.appendChild(horasDiarias);
+    }
 
     if (colaboradoresAdicionais.length) {
         const colaboradores = document.createElement("div");
@@ -3538,8 +3577,10 @@ function carregarTfmNoFormulario(dados) {
         return;
     }
 
-    const dataInicio = normalizarDataInput(dados.dataInicioTfm || dados.data);
-    const dataFim = normalizarDataInput(dados.dataFimTfm || dados.dataInicioTfm || dados.data);
+    const registros = Array.isArray(dados.registros) ? dados.registros : [];
+    const periodo = obterPeriodoRegistros(dados, registros);
+    const dataInicio = normalizarDataInput(periodo.inicio || dados.dataInicioTfm || dados.data);
+    const dataFim = normalizarDataInput(periodo.fim || dados.dataFimTfm || dados.dataInicioTfm || dados.data);
 
     // Armazenar qual linha está sendo editada
     linhaEditando = dados.linhaEditando || null;
@@ -3553,7 +3594,6 @@ function carregarTfmNoFormulario(dados) {
     document.getElementById("projeto").value = dados.projeto || "";
     renderizarColaboradoresAdicionais(Array.isArray(dados.colaboradoresAdicionais) ? dados.colaboradoresAdicionais : []);
 
-    const registros = Array.isArray(dados.registros) ? dados.registros : [];
     const dadosEdicao = consolidarRegistrosParaEdicao(registros);
     document.querySelectorAll(".detalhes-item").forEach((item, index) => {
         if (index > 0) {
