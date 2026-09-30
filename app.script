@@ -795,6 +795,7 @@ function obterDisponibilidadesDiarias(chavesBuscadas) {
 
 function buscarAlertasDisponibilidade(matricula) {
   const matriculaBusca = String(matricula || "").trim();
+  const hoje = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "yyyy-MM-dd");
   const totais = new Map();
   const nomes = new Map();
   const adicionarHoras = (data, horas, nome) => {
@@ -855,7 +856,7 @@ function buscarAlertasDisponibilidade(matricula) {
       tipo: classificarTipoDisponibilidade(disponibilidade),
       atualizadoEm: disponibilidade?.atualizadoEm || ""
     };
-  }).filter((item) => item.horasDisponiveis !== undefined && item.total > 9)
+  }).filter((item) => item.data < hoje && item.horasDisponiveis !== undefined && item.total > 9)
     .sort((primeiro, segundo) => segundo.data.localeCompare(primeiro.data));
 }
 
