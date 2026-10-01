@@ -615,6 +615,12 @@ async function abrirNovoTfm(event) {
     const horas = converterHorasNumero(abertoHoras.value);
     const observacao = abertoObservacao.value.trim();
 
+    if (tfm === "000000") {
+        mostrarFeedback(abertoFeedback, "O TFM 000000 e exclusivo para lancamentos fechados de treinamento.", "erro");
+        abertoTfm.focus();
+        return;
+    }
+
     if (!atividadeValida(atividade)) {
         mostrarFeedback(abertoFeedback, "Esta atividade não consta na lista cadastrada e não pode ser salva. Caso seja necessária, registre uma sugestão em Sugerir atividade.", "erro");
         abertoAtividade.focus();

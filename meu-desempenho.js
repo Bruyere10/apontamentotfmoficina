@@ -803,7 +803,7 @@ async function carregarDesempenhoColaborador() {
                 ? "Não foi possível atualizar agora. Os últimos dados disponíveis foram mantidos."
                 : erro.name === "AbortError"
                     ? "A consulta ao banco demorou mais que o esperado. Tente atualizar novamente."
-                    : "Não foi possível carregar o desempenho do banco de dados. Publique a versão atualizada do Apps Script e tente novamente.";
+                    : erro.message || "Não foi possível carregar o desempenho do banco de dados. Tente novamente.";
             console.error(erro);
         }
     } finally {

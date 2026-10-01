@@ -10,6 +10,9 @@ const CONFIG = {
   linkPastaAnexos: "https://shiftup-my.sharepoint.com/:f:/g/personal/sg49872_stellantis_com/IgDxzGY1IAPwTYN1uhem8RKKAYlMmhuHFkPMGI7LKben0e4?e=HpeW7Y"
 };
 
+const TFM_TREINAMENTO = "000000";
+const ATIVIDADE_TREINAMENTO = "Treinamento";
+
 const CABECALHOS = [
   "DATA",
   "NOME",
@@ -123,6 +126,10 @@ function doPost(evento) {
 
     const planilha = obterAbaPrincipal();
 
+    if (ehTfmTreinamento(dados.tfm) && dados.linhaEditando) {
+      throw new Error("Lancamentos de treinamento devem ser registrados como novos apontamentos e nao podem ser editados pelo TFM 000000.");
+    }
+
     if (dados.linhaEditando && Number.isInteger(dados.linhaEditando) && dados.linhaEditando > 1) {
       validarResponsavelEdicao(planilha, dados);
     }
@@ -132,11 +139,14 @@ function doPost(evento) {
     const documentos = enviarDocumentosPorEmail(dados);
     const nomesDocumentos = documentos.map((documento) => documento.nome).join(" | ");
     const linksDocumentos = [...new Set(documentos.map((documento) => documento.url).filter(Boolean))].join(" | ");
-    const atividades = Array.isArray(dados.distribuicaoDiaria) && dados.distribuicaoDiaria.length > 0
+    const atividadesRecebidas = Array.isArray(dados.distribuicaoDiaria) && dados.distribuicaoDiaria.length > 0
       ? dados.distribuicaoDiaria
       : Array.isArray(dados.atividades) && dados.atividades.length > 0
         ? dados.atividades
         : [{ atividade: "", horas: "", observacao: "" }];
+    const atividades = atividadesRecebidas.map((atividade) => ehTfmTreinamento(dados.tfm)
+      ? { ...atividade, atividade: ATIVIDADE_TREINAMENTO }
+      : atividade);
     const colaboradoresAdicionais = normalizarColaboradoresAdicionais(dados.colaboradoresAdicionais);
     const lancamentoColaboradorInvalido = colaboradoresAdicionais.some((colaborador) => (
       colaborador.lancamentos.some((lancamento) => (
@@ -332,7 +342,7 @@ function validarResponsavelEdicao(planilha, dados) {
 function validarTfmNaoEstaEmAndamento(dados) {
   const tfm = String(dados.tfm || "").trim();
 
-  if (dados.linhaEditando || !/^\d{6}$/.test(tfm)) {
+  if (dados.linhaEditando || ehTfmTreinamento(tfm) || !/^\d{6}$/.test(tfm)) {
     return;
   }
 
@@ -340,6 +350,10 @@ function validarTfmNaoEstaEmAndamento(dados) {
   if (localizarLinhasTfmAberto(abaTfmsAbertos, tfm, "EM ANDAMENTO").length) {
     throw new Error("Este TFM está em andamento. Finalize-o na área de TFMs em andamento antes de registrá-lo como fechado.");
   }
+}
+
+function ehTfmTreinamento(tfm) {
+  return String(tfm || "").trim() === TFM_TREINAMENTO;
 }
 
 function salvarSugestaoAtividade(dados) {
@@ -547,9 +561,14 @@ function doGet(evento) {
 
 function listarTemposPadrao() {
   const aba = obterArquivoPlanilha().getSheetByName(CONFIG.nomeAbaCodigos);
+  const atividadeTreinamento = {
+    codigo: "TREINAMENTO",
+    atividade: ATIVIDADE_TREINAMENTO,
+    tempoPadrao: 0
+  };
 
   if (!aba || aba.getLastRow() < 2) {
-    return [];
+    return [atividadeTreinamento];
   }
 
   const valores = aba.getDataRange().getValues();
@@ -562,11 +581,17 @@ function listarTemposPadrao() {
     throw new Error("As colunas Atividade e Tempo Padrão não foram encontradas na aba Códigos.");
   }
 
-  return valores.slice(1).map((linha) => ({
+  const atividades = valores.slice(1).map((linha) => ({
     codigo: colunaCodigo >= 0 ? linha[colunaCodigo] : "",
     atividade: String(linha[colunaAtividade] || "").trim(),
     tempoPadrao: Number(linha[colunaTempoPadrao]) || 0
   })).filter((item) => item.atividade);
+
+  if (!atividades.some((item) => normalizarCabecalho(item.atividade) === normalizarCabecalho(ATIVIDADE_TREINAMENTO))) {
+    atividades.push(atividadeTreinamento);
+  }
+
+  return atividades;
 }
 
 function obterArquivoPlanilha() {
@@ -583,7 +608,37 @@ function obterArquivoPlanilha() {
 
 function obterAbaPrincipal() {
   const arquivo = obterArquivoPlanilha();
-  const aba = arquivo.getSheetByName(CONFIG.nomeAba) || arquivo.insertSheet(CONFIG.nomeAba);
+  let aba = arquivo.getSheetByName(CONFIG.nomeAba);
+
+  if (!aba) {
+    aba = arquivo.getSheets().find((candidata) => {
+      if ([
+        CONFIG.nomeAbaTfmsAbertos,
+        CONFIG.nomeAbaDadosComplementares,
+        CONFIG.nomeAbaCodigos,
+        CONFIG.nomeAbaDisponibilidade
+      ].includes(candidata.getName()) || candidata.getLastRow() === 0) {
+        return false;
+      }
+
+      const cabecalhos = candidata.getRange(1, 1, 1, candidata.getLastColumn()).getValues()[0];
+      return obterIndiceCabecalho(cabecalhos, ["Data"]) >= 0
+        && obterIndiceCabecalho(cabecalhos, ["Nome", "Nome do Colaborador", "Colaborador"]) >= 0
+        && obterIndiceCabecalho(cabecalhos, ["Matricula", "Matrícula"]) >= 0
+        && obterIndiceCabecalho(cabecalhos, ["TFM", "Numero do TFM", "Número do TFM"]) >= 0
+        && obterIndiceCabecalho(cabecalhos, ["Atividade", "Atividade Realizada"]) >= 0
+        && obterIndiceCabecalho(cabecalhos, ["Horas", "Horas Trabalhadas"]) >= 0;
+    });
+  }
+
+  if (!aba) {
+    const planilhaVazia = arquivo.getSheets().every((candidata) => candidata.getLastRow() === 0);
+    if (!planilhaVazia) {
+      throw new Error(`A aba ${CONFIG.nomeAba} nao foi encontrada. Verifique o nome da aba principal no Apps Script.`);
+    }
+
+    aba = arquivo.insertSheet(CONFIG.nomeAba);
+  }
 
   if (aba.getLastRow() === 0) {
     aba.appendRow(CABECALHOS);
@@ -1524,6 +1579,10 @@ function abrirTfmEmAndamento(dados) {
         && lista.findIndex((outro) => outro.matricula === item.matricula) === indice
       ))
       : [];
+
+    if (ehTfmTreinamento(tfm)) {
+      throw new Error("O TFM 000000 e exclusivo para lancamentos fechados de treinamento.");
+    }
 
     if (!/^\d{6}$/.test(tfm) || !matriculaHost || !dados.nomeHost || !dados.dataInicial || !atividade || horas <= 0) {
       throw new Error("Preencha TFM, data inicial, responsavel, atividade e horas antes de abrir.");

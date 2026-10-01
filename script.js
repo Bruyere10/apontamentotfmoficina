@@ -1,4 +1,5 @@
 const atividadesDisponiveisLegado = [
+    "Treinamento",
     "Troca de motor N4/ N3 em veículo",
     "Troca de motor Diesel 2.2 KP1",
     "Troca de motor Diesel 2.2 Comander / Toro / RampageAC",
@@ -258,6 +259,8 @@ const ETAPAS_CONSULTA_TFM = [
     "Consultando o Banco de Dados...",
     "Aguarde, quase lá..."
 ];
+const TFM_TREINAMENTO = "000000";
+const ATIVIDADE_TREINAMENTO = "Treinamento";
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbycpTr1Vj5nCByX2gYKvaXnhw7EiBUYqlnRq7ClSoqr2ZNBNvAUqvW2br6ksyAJDcxO/exec";
 const LIMITE_PREVIEW_DOCUMENTOS = 4;
 let resumoPlanilhaCarregado = false;
@@ -1849,6 +1852,24 @@ function atualizarResumoAtividadeItem(item) {
     atualizarTempoPadraoInput(item.querySelector(".atividade-input"));
 }
 
+function preencherAtividadeTreinamento() {
+    const tfm = document.getElementById("tfm")?.value.trim();
+
+    if (tfm !== TFM_TREINAMENTO) {
+        return;
+    }
+
+    document.querySelectorAll(".detalhes-item").forEach((item) => {
+        const atividadeInput = item.querySelector(".atividade-input");
+        if (!atividadeInput) {
+            return;
+        }
+
+        atividadeInput.value = ATIVIDADE_TREINAMENTO;
+        atualizarResumoAtividadeItem(item);
+    });
+}
+
 function converterArquivoParaBase64(arquivo) {
     return new Promise((resolve, reject) => {
         const leitor = new FileReader();
@@ -3319,13 +3340,21 @@ function criarResultadoTfm(dados) {
     const matriculaHost = String(dados.matricula || "").trim();
     const matriculaLogada = String(usuarioAtual?.matricula || "").trim();
 
-    if (matriculaLogada && matriculaLogada === matriculaHost) {
+    if (matriculaLogada && matriculaLogada === matriculaHost && dados.tfm !== TFM_TREINAMENTO) {
         const botaoEditar = document.createElement("button");
         botaoEditar.type = "button";
         botaoEditar.className = "btn-carregar-tfm";
         botaoEditar.innerHTML = `<i class="bi bi-pencil-square"></i> Editar no formulário`;
         botaoEditar.addEventListener("click", () => carregarTfmNoFormulario(dados));
         cabecalho.appendChild(botaoEditar);
+    } else if (dados.tfm === TFM_TREINAMENTO) {
+        const avisoTreinamento = document.createElement("div");
+        avisoTreinamento.className = "aviso-edicao-host";
+        avisoTreinamento.innerHTML = `
+            <i class="bi bi-info-circle"></i>
+            <span>Os lançamentos de treinamento são registrados sempre como novos apontamentos.</span>
+        `;
+        cabecalho.appendChild(avisoTreinamento);
     } else if (usuarioAtual && matriculaHost) {
         const avisoEdicao = document.createElement("div");
         avisoEdicao.className = "aviso-edicao-host";
@@ -3741,6 +3770,8 @@ async function prepararDadosApontamento() {
             : distribuirHorasNoPeriodo(atividade.horas, dataInicioTfm, dataFimTfm)
     }));
 
+    const tfm = document.getElementById("tfm").value.trim();
+
     return {
         data: dataFimTfm,
         dataInicioTfm,
@@ -3750,7 +3781,7 @@ async function prepararDadosApontamento() {
         cadastroPendente: Boolean(usuarioAtual?.cadastroPendente),
         observacaoCadastro: usuarioAtual?.cadastroPendente ? "Colaborador entrou pelo botão Não encontrei meu nome." : "",
         turno: document.getElementById("turno").value,
-        tfm: document.getElementById("tfm").value,
+        tfm,
         projeto: document.getElementById("projeto").value,
         colaboradoresAdicionais,
         documentos: await prepararDocumentos(document.getElementById("documento-1")),
@@ -3764,7 +3795,7 @@ async function prepararDadosApontamento() {
                 observacao: atividade.observacao
             }))
         )),
-        linhaEditando: linhaEditando,
+        linhaEditando: tfm === TFM_TREINAMENTO ? null : linhaEditando,
         matriculaUsuarioEditor: String(usuarioAtual?.matricula || "").trim()
     };
 }
@@ -3775,9 +3806,10 @@ async function salvarApontamentoConfirmado() {
     }
 
     const dados = apontamentoPendente;
+    const ehTreinamento = String(dados.tfm || "").trim() === TFM_TREINAMENTO;
 
     // Enviar informação sobre qual linha está sendo editada
-    if (linhaEditando) {
+    if (linhaEditando && !ehTreinamento) {
         dados.linhaEditando = linhaEditando;
     }
 
@@ -4044,6 +4076,9 @@ distribuicaoManualLista?.addEventListener("input", (event) => {
     input?.addEventListener("input", renderizarCamposDistribuicaoManual);
     input?.addEventListener("change", renderizarCamposDistribuicaoManual);
 });
+
+document.getElementById("tfm")?.addEventListener("input", preencherAtividadeTreinamento);
+document.getElementById("tfm")?.addEventListener("change", preencherAtividadeTreinamento);
 
 modalHorasInput.addEventListener("input", () => {
     aplicarSeparadorDecimalPonto(modalHorasInput);
