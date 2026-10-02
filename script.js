@@ -94,7 +94,8 @@ const atividadesDisponiveisLegado = [
     "Troca de turbina em motor na cela T3 e T4",
     "Troca de turbocompressor de motor T3/T4 em cela",
     "Diagnose vazamento descarga em veículo Diesel",
-    "Substituir bobina motor T4 Veículo"
+    "Substituir bobina motor T4 Veículo",
+    "Desmontagem de motor"
 ].sort((primeira, segunda) => primeira.localeCompare(segunda, "pt-BR"));
 const atividadesDisponiveis = Array.isArray(window.ATIVIDADES_DISPONIVEIS)
     ? window.ATIVIDADES_DISPONIVEIS
@@ -317,7 +318,7 @@ const colaboradores = [
     { matricula: "61834", nome: "Roberto Carlos Vieira Martins" },
     { matricula: "60551", nome: "Rodolfo Ribeiro Martins" },
     { matricula: "66647", nome: "Romeu Malagoli dos Santos" },
-    { matricula: "61091", nome: "Sebastião Dirino Correia" },
+    { matricula: "61091", nome: "Sebastião Dirino Correa" },
     { matricula: "61367", nome: "Sueimer Batista Pereira" },
     { matricula: "61938", nome: "Wender Bortoloto da Costa" },
     { matricula: "61124", nome: "Valdemi Amancio Do Nascimento" },

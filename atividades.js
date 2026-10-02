@@ -93,5 +93,6 @@ window.ATIVIDADES_DISPONIVEIS = [
     "Troca de turbina em motor na cela T3 e T4",
     "Troca de turbocompressor de motor T3/T4 em cela",
     "Diagnose vazamento descarga em veículo Diesel",
-    "Substituir bobina motor T4 Veículo"
+    "Substituir bobina motor T4 Veículo",
+    "Desmontagem de motor"
 ].sort((primeira, segunda) => primeira.localeCompare(segunda, "pt-BR"));

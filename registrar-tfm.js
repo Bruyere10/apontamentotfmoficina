@@ -122,7 +122,7 @@ const colaboradores = [
     { matricula: "61834", nome: "Roberto Carlos Vieira Martins" },
     { matricula: "60551", nome: "Rodolfo Ribeiro Martins" },
     { matricula: "66647", nome: "Romeu Malagoli dos Santos" },
-    { matricula: "61091", nome: "Sebastião Dirino Correia" },
+    { matricula: "61091", nome: "Sebastião Dirino Correa" },
     { matricula: "61367", nome: "Sueimer Batista Pereira" },
     { matricula: "61938", nome: "Wender Bortoloto da Costa" },
     { matricula: "61124", nome: "Valdemi Amancio Do Nascimento" },
